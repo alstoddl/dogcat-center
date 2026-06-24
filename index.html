@@ -1,12 +1,28 @@
+<style>
+.menu{
+  display:flex;
+  justify-content:center;
+  gap:15px;
+  margin-top:20px;
+}
+
+.menu button{
+  padding:10px 20px;
+  border:none;
+  border-radius:10px;
+  background:#ffcc4d;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
+}
+</style>
+
 <div class="menu">
   <button onclick="showPets('dog')">🐶 강아지</button>
   <button onclick="showPets('cat')">🐱 고양이</button>
 </div>
 
 <div class="container">
-
-
-
   <div class="board">
 
     <div class="card dog-card">
@@ -53,23 +69,8 @@ function showPets(type){
     cats.forEach(el => el.style.display='block');
   }
 }
-<style> 
-window.onload = () => showPets('dog');
+
+window.onload = function(){
+  showPets('dog');
+}
 </script>
-
-.menu{
-  display:flex;
-  justify-content:center;
-  gap:15px;
-  margin-top:20px;
-}
-
-.menu button{
-  padding:10px 20px;
-  border:none;
-  border-radius:10px;
-  background:#ffcc4d;
-  font-size:16px;
-  font-weight:bold;
-  cursor:pointer;
-}
