@@ -1,25 +1,15 @@
-<p>건강한 반려동물의 새로운 가족을 찾아드립니다</p>
-
-  <div class="menu">
-    <a href="#">강아지</a>
-    <a href="#">고양이</a>
-  </div>
-</header>
+<div class="menu">
+  <button onclick="showPets('dog')">🐶 강아지</button>
+  <button onclick="showPets('cat')">🐱 고양이</button>
+</div>
 
 <div class="container">
 
-  <div class="notice">
-    <h2>📢 공지사항</h2>
-    <p>분양하실때는 단톡방 프로필로 메너있게 연락 부탁드립니다.</p>
-  </div>
 
-  <div class="search">
-    <input type="text" placeholder="품종 검색">
-  </div>
 
   <div class="board">
 
-    <div class="card">
+    <div class="card dog-card">
       <div class="pin">📌</div>
       <span class="badge dog">강아지</span>
       <h3>말티푸</h3>
@@ -28,7 +18,7 @@
       <p>2개월</p>
     </div>
 
-    <div class="card">
+    <div class="card cat-card">
       <div class="pin">📌</div>
       <span class="badge cat">고양이</span>
       <h3>실버뱅갈</h3>
@@ -37,7 +27,7 @@
       <p>3개월</p>
     </div>
 
-    <div class="card">
+    <div class="card dog-card">
       <div class="pin">📌</div>
       <span class="badge dog">강아지</span>
       <h3>포메라니안</h3>
@@ -47,15 +37,27 @@
     </div>
 
   </div>
-
 </div>
 
-<div class="footer">
-  © 2026 댕냥이 분양센터
-</div>
+<script>
+function showPets(type){
 
-</body>
-</html>.menu{
+  const dogs = document.querySelectorAll('.dog-card');
+  const cats = document.querySelectorAll('.cat-card');
+
+  if(type === 'dog'){
+    dogs.forEach(el => el.style.display='block');
+    cats.forEach(el => el.style.display='none');
+  } else {
+    dogs.forEach(el => el.style.display='none');
+    cats.forEach(el => el.style.display='block');
+  }
+}
+<style> 
+window.onload = () => showPets('dog');
+</script>
+
+.menu{
   display:flex;
   justify-content:center;
   gap:15px;
