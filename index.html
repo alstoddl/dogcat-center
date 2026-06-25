@@ -187,6 +187,7 @@ function updateVisitorCount(){
 }
 
 window.onload = function(){
+  loadPets();          // 👈 추가
   showPets('dog');
   updateVisitorCount();
   updatePetCounts();
@@ -195,3 +196,67 @@ window.onload = function(){
 
 </body>
 </html>
+<div class="menu">
+  <button onclick="showPets('dog')">🐶 강아지</button>
+  <button onclick="showPets('cat')">🐱 고양이</button>
+  <button onclick="adminLogin()">🔐 관리자</button>
+</div>
+<div id="adminPanel" style="display:none; text-align:center; margin:20px;">
+  <h3>관리자 모드</h3>
+
+  <input id="petType" placeholder="dog 또는 cat">
+  <input id="petName" placeholder="이름">
+  <input id="petGender" placeholder="성별 (남아/여아)">
+  <input id="petAge" placeholder="개월수">
+
+  <button onclick="addPet()">추가하기</button>
+</div>
+let isAdmin = false;
+
+function adminLogin(){
+  const pw = prompt("관리자 비밀번호 입력");
+
+  if(pw === "admin123"){
+    isAdmin = true;
+    document.getElementById("adminPanel").style.display = "block";
+    alert("관리자 모드 활성화");
+  } else {
+    alert("비밀번호 틀림");
+  }
+}
+
+function addPet(){
+  const type = document.getElementById("petType").value;
+  const name = document.getElementById("petName").value;
+  const gender = document.getElementById("petGender").value;
+  const age = document.getElementById("petAge").value;
+
+  if(!type || !name) return;
+
+  const card = document.createElement("div");
+  card.className = "card " + (type === "dog" ? "dog-card" : "cat-card");
+
+  card.innerHTML = 
+    <div class="pin">📌</div>
+    <span class="badge ${type}">${type === "dog" ? "강아지" : "고양이"}</span>
+    <h3>${name}</h3>
+    <p>성별 : ${gender}</p>
+    <p>등록됨</p>
+    <p>${age}개월</p>
+  ;
+
+  document.querySelector(".board").appendChild(card);
+
+  savePets();
+
+  updatePetCounts();
+}function savePets(){
+  localStorage.setItem("petsHTML", document.querySelector(".board").innerHTML);
+}
+
+function loadPets(){
+  const data = localStorage.getItem("petsHTML");
+  if(data){
+    document.querySelector(".board").innerHTML = data;
+  }
+}
