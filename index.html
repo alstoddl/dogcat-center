@@ -1,288 +1,341 @@
-const express = require("express");
-const app = express();
-const cors = require("cors");
 
-app.use(cors());
-app.use(express.json());
-
-/* =========================
-   📦 서버 데이터 (CRUD only)
-========================= */
-let pets = [];
-
-/* =========================
-   🌐 API (무조건 여기로만 조작)4
-========================= */
-
-/* 목록 */
-app.get("/api/pets", (req, res) => {
-  res.json(pets);
-});
-
-/* 등록 */
-app.post("/api/pets", (req, res) => {
-  const { name, type, sex, info } = req.body;
-
-  const pet = {
-    id: Date.now(),
-    name,
-    type,
-    sex,
-    info,
-    like: false
-  };
-
-  pets.push(pet);
-  res.json(pet);
-});
-
-/* 수정 */
-app.put("/api/pets/:id", (req, res) => {
-  const id = Number(req.params.id);
-
-  pets = pets.map(p =>
-    p.id === id ? { ...p, ...req.body } : p
-  );
-
-  res.json({ ok: true });
-});
-
-/* 삭제 */
-app.delete("/api/pets/:id", (req, res) => {
-  const id = Number(req.params.id);
-  pets = pets.filter(p => p.id !== id);
-  res.json({ ok: true });
-});
-
-/* =========================
-   🌐 FRONT (포스트잇 앱)
-========================= */
-app.get("/", (req, res) => {
-  res.send(`
 <!doctype html>
 <html lang="ko">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>댕냥이 포스트잇</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>댕냥이 분양센터</title>
 
-<style>
-body{
-  margin:0;
-  font-family:sans-serif;
-  background:#eef0f5;
-  overflow:hidden;
-}
+  <style>
+    :root{
+      --bg:#f3f4f6;
+      --pin:#d33;
+      --yellow:#fff7a8;
+      --yellow-dark:#f2e57a;
+      --shadow: rgba(15,23,42,0.18);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', 'Helvetica Neue', Arial;
+    }
 
-header{
-  background:#ff6b6b;
-  color:#fff;
-  text-align:center;
-  padding:12px;
-  font-weight:bold;
-}
+    body{
+      margin:0;
+      background:linear-gradient(180deg,var(--bg),#eef2f7);
+      overflow-x: auto;
+    }
 
-#panel{
-  position:fixed;
-  top:60px;
-  left:10px;
-  width:220px;
-  background:#fff;
-  padding:10px;
-  border-radius:12px;
-  box-shadow:0 5px 15px rgba(0,0,0,0.2);
-  z-index:1000;
-}
+    /* 제목 */
+    h2{
+      width: 900px;
+      margin: 10px auto -5px auto;
+      text-align: left;
+      font-size: 14px;
+      font-weight: 700;
+      color: #666;
+      padding-left: 10px;
+    }
 
-input,select{
-  width:100%;
-  margin:3px 0;
-  padding:6px;
-}
+    /* ⭐ 필터 버튼 영역 */
+    .filter-box{
+      width: 900px;
+      margin: 10px auto 15px auto;
+      display: flex;
+      gap: 15px;
+      padding-left: 10px;
+    }
 
-button{
-  width:100%;
-  padding:6px;
-  margin-top:5px;
-}
+    .filter-btn{
+      padding: 6px 14px;
+      border-radius: 8px;
+      background: white;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      font-size: 14px;
+      transition: 0.2s;
+    }
 
-#board{
-  position:relative;
-  width:100vw;
-  height:100vh;
-}
+    .filter-btn.active{
+      background: #ffe58f;
+      border-color: #e0b800;
+      font-weight: 700;
+    }
 
-.note{
-  position:absolute;
-  width:180px;
-  min-height:120px;
-  background:#fff7a8;
-  padding:10px;
-  border-radius:12px;
-  box-shadow:0 8px 20px rgba(0,0,0,0.15);
-  cursor:grab;
-  user-select:none;
-}
-</style>
+    /* ⭐ 고정형 3열 포스트잇 보드 */
+    .board{
+      width: 900px;
+      margin: 20px auto;
+      display: grid;
+      grid-template-columns: 250px 250px 250px;
+      column-gap: 35px;
+      row-gap: 35px;
+      justify-content: center;
+    }
+
+    /* ⭐ 포스트잇 */
+    .postit{
+      width:240px;
+      padding:16px 14px;
+      border-radius:12px;
+      box-shadow:0 10px 40px var(--shadow), 0 2px 6px rgba(0,0,0,0.06);
+      transition:box-shadow .18s ease;
+      position:relative;
+      overflow:hidden;
+      min-height:180px;
+      background:linear-gradient(180deg,var(--yellow),var(--yellow-dark));
+    }
+
+    .postit:hover{
+      box-shadow:0 18px 50px rgba(15,23,42,0.24);
+    }
+
+    /* 포스트잇 하단 정보 바 */
+    .postit-footer{
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 8px;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      font-size: 11px;
+      color: #6b5a00;
+      opacity: 0.6;
+    }
+
+    /* 핀 이모지 */
+    .pin{
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      top: -2px;
+
+      background: none;
+      width: auto;
+      height: auto;
+
+      display: block;
+      color: #d33;
+      font-size: 20px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.25);
+      box-shadow: none;
+    }
+
+    /* 텍스트 */
+    h1{
+      margin: 10px 0 0 0;
+      font-size:17px;
+      color:#3b2a00;
+    }
+
+    p{
+      margin:6px 0;
+      color:#3d2f00;
+      font-size:13px;
+      word-break:break-all;
+      line-height:1.3;
+    }
+
+    .meta{
+      margin-top:6px;
+      font-size:12px;
+      color:#3d2f00;
+      display:flex;
+      gap:6px;
+      align-items:center;
+      word-break:break-all;
+    }
+  </style>
 </head>
 
 <body>
 
-<header>🐶🐱 댕냥이 포스트잇 분양센터</header>
+  <!-- 제목 -->
+  <!-- <h2 id="title"></h2> -->
+  <h2>
+    <span id="title"></span>
+    <span id="count" style="margin-left:10px; color:#888;">(today : 0)</span>
+  </h2>
 
-<div id="panel">
-  <input id="name" placeholder="이름">
-  <select id="type">
-    <option value="dog">🐶 강아지</option>
-    <option value="cat">🐱 고양이</option>
-  </select>
-  <input id="sex" placeholder="성별">
-  <input id="info" placeholder="설명">
-  <button onclick="addPet()">등록</button>
-</div>
+  <!-- ⭐ 필터 버튼 -->
+  <div class="filter-box">
+    <button class="filter-btn active" id="btn-dog">🐶 강아지</button>
+    <button class="filter-btn" id="btn-cat">🐱 고양이</button>
+  </div>
 
-<div id="board"></div>
+  <main class="board" id="board"></main>
 
-<script>
+  <script>
+    const SUPABASE_URL = "https://djcqvzlmzkabxilcgowx.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqY3F2emxtemthYnhpbGNnb3d4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUyNDkzNDIsImV4cCI6MjA4MDgyNTM0Mn0.HTR23axmJmua0LJb0u_Rj8fa-BYotVutrC26uSGkwh0";
+    const TABLE = "sale";
 
-const API = "/api/pets";
+    let allData = [];      // 전체 데이터
+    let currentType = "dog"; // ⭐ 처음 로드될 때 강아지만 표시
 
-let pets = [];
-let pos = JSON.parse(localStorage.getItem("pos") || "{}");
+    async function loadData() {
+      try {
+        const res = await fetch(
+          ${SUPABASE_URL}/rest/v1/${TABLE}?select=*,
+          {
+            method: "GET",
+            headers: {
+              "apikey": SUPABASE_KEY,
+              "Authorization": Bearer ${SUPABASE_KEY}
+            }
+          }
+        );
 
-let dragId = null;
-let offsetX = 0;
-let offsetY = 0;
+const data = await res.json();
+        if (!Array.isArray(data)) return;
 
-/* =========================
-   📡 API LOAD
-========================= */
-async function load(){
-  const res = await fetch(API);
-  pets = await res.json();
-  render();
-}
+        allData = data;
 
-/* =========================
-   ➕ 등록 (API)
-========================= */
-async function addPet(){
-  await fetch(API,{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body:JSON.stringify({
-      name:name.value,
-      type:type.value,
-      sex:sex.value,
-      info:info.value
-    })
-  });
+        // 오래된 순 정렬 (id 오름차순)
+        allData.sort((a, b) => a.id - b.id);
 
-  load();
-}
+        // 개, 고양이 수 계산
+        const dogCount = data.filter(item => item.type === "dog").length;
+        const catCount = data.filter(item => item.type === "cat").length;
 
-/* =========================
-   🗑 삭제 (API)
-========================= */
-async function del(id){
-  await fetch(`${API}/${id}`,{ method:"DELETE" });
-  load();
-}
+        updateTitle(dogCount, catCount);
 
-/* =========================
-   ✏️ 수정 (API)
-========================= */
-async function edit(id){
-  const name = prompt("이름");
-  const info = prompt("설명");
+        // 초기 로딩 → 강아지만 표시
+        renderCards(filterData("dog"));
 
-  await fetch(`${API}/${id}`,{
-    method:"PUT",
-    headers:{ "Content-Type":"application/json" },
-    body:JSON.stringify({name,info})
-  });
-
-  load();
-}
-
-/* =========================
-   🧲 드래그
-========================= */
-function startDrag(e,id){
-  dragId = id;
-
-  const p = pos[id] || {x:200,y:200};
-
-  offsetX = e.clientX - p.x;
-  offsetY = e.clientY - p.y;
-}
-
-window.addEventListener("mousemove",(e)=>{
-  if(!dragId) return;
-
-  pos[dragId] = {
-    x: e.clientX - offsetX,
-    y: e.clientY - offsetY
-  };
-
-  localStorage.setItem("pos", JSON.stringify(pos));
-  render();
-});
-
-window.addEventListener("mouseup",()=>{
-  dragId = null;
-});
-
-/* =========================
-   🎨 렌더
-========================= */
-function render(){
-  const board = document.getElementById("board");
-  board.innerHTML = "";
-
-  pets.forEach(p=>{
-
-    if(!pos[p.id]){
-      pos[p.id] = {
-        x: Math.random()*500 + 200,
-        y: Math.random()*300 + 150
-      };
+      } catch (err) {
+        console.error("Fetch Error:", err);
+      }
     }
 
-    const div = document.createElement("div");
-    div.className = "note";
+    async function updateAndGetVisitCount() {
+      try {
+        const res = await fetch(
+          ${SUPABASE_URL}/rest/v1/rpc/increment_visit_and_get_count,
+          {
+            method: "POST",
+            headers: {
+              "apikey": SUPABASE_KEY,
+              "Authorization": Bearer ${SUPABASE_KEY},
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({})
+          }
+        );
 
-    div.style.left = pos[p.id].x + "px";
-    div.style.top = pos[p.id].y + "px";
+        if (!res.ok) {
+          throw new Error(HTTP 오류: ${res.status});
+        }
 
-    div.onmousedown = (e)=>startDrag(e,p.id);
+        const data = await res.json();
 
-    div.innerHTML = `
-      <b>${p.name}</b><br>
-      ${p.type}<br>
-      ${p.sex}<br>
-      ${p.info}<br><br>
+        // 👉 반환값 형태 대응
+        let count;
 
-      <button onclick="edit(${p.id})">수정</button>
-      <button onclick="del(${p.id})">삭제</button>
-    `;
+        if (typeof data === "number") {
+          count = data;
+        } else if (Array.isArray(data)) {
+          count = data[0]?.count;
+        } else {
+          count = data?.count;
+        }
 
-    board.appendChild(div);
-  });
-}
+        // document.getElementById("count").innerText = count ?? "오류";
+        updateCount(count);
 
-load();
+      } catch (err) {
+        console.error("RPC 호출 실패:", err);
+        document.getElementById("count").innerText = "불러오기 실패";
+      }
+    }
 
-</script>
+    function updateTitle(count1, count2) {
+      const titleEl = document.getElementById("title");
+      // const today = new Date().toISOString().slice(0, 10);
+      // titleEl.textContent = 강아지 ${count1}마리, 고양이 ${count2}마리 등록 (${today});
 
+      titleEl.textContent = 강아지 ${count1}마리, 고양이 ${count2}마리 등록;
+    }
+
+    function updateCount(count) {
+      const countEl = document.getElementById("count");
+
+      countEl.textContent = (today : ${count});
+    }
+
+    /* ⭐ type별 필터 */
+    function filterData(type) {
+      return allData.filter(item => item.type === type);
+    }
+
+    /* ⭐ 카드 렌더링 */
+    function renderCards(data) {
+      const board = document.getElementById("board");
+      board.innerHTML = "";
+
+      data.forEach((item) => {
+        const card = document.createElement("article");
+        card.className = postit;
+
+        card.innerHTML = 
+          <div class="pin">📌</div>
+
+          <h1>${item.nick_name ?? ""}</h1>
+
+          <p>📄 ${item.specification ?? ""}</p>
+          <p>📝 ${item.memo ?? ""}</p>
+
+          ${
+            item.link
+              ? 
+                <div class="meta">
+                  <span>🔗</span>
+                  <span>
+                    <a href="${item.link}" target="_blank" rel="noopener noreferrer">
+                      ${item.link}
+                    </a>
+                  </span>
+                </div>
+              
+              : ""
+          }
+
+          <div class="postit-footer">
+            <span>${item.valid_month}월 분양</span>
+            <span>#${item.id}</span>
+          </div>
+        ;
+
+        board.appendChild(card);
+      });
+    }
+
+    /* ⭐ 버튼 클릭 이벤트 */
+    document.getElementById("btn-dog").addEventListener("click", () => {
+      currentType = "dog";
+      setActive("dog");
+      renderCards(filterData("dog"));
+    });
+
+    document.getElementById("btn-cat").addEventListener("click", () => {
+      currentType = "cat";
+      setActive("cat");
+      renderCards(filterData("cat"));
+    });
+
+    /* ⭐ 버튼 active 스타일 적용 */
+    function setActive(type) {
+      document.getElementById("btn-dog").classList.remove("active");
+      document.getElementById("btn-cat").classList.remove("active");
+
+      if (type === "dog")
+        document.getElementById("btn-dog").classList.add("active");
+      else
+        document.getElementById("btn-cat").classList.add("active");
+    }
+
+    loadData();
+    updateAndGetVisitCount();
+    
+  </script>
 </body>
 </html>
-  `);
-});
-
-/* =========================
-   🚀 서버 실행
-========================= */
-app.listen(3000, () => {
-  console.log("서버 실행: http://localhost:3000");
-});
