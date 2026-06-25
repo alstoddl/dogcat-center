@@ -19,7 +19,14 @@ header{
   text-align:center;
 }
 
-.info, .tabs{
+.info{
+  display:flex;
+  justify-content:center;
+  gap:15px;
+  padding:10px;
+}
+
+.tabs{
   display:flex;
   justify-content:center;
   gap:10px;
@@ -33,9 +40,15 @@ header{
   cursor:pointer;
   background:#ddd;
 }
-.tabs button.active{background:#ff6b6b;color:#fff;}
 
-.container{padding:10px;}
+.tabs button.active{
+  background:#ff6b6b;
+  color:white;
+}
+
+.container{
+  padding:10px;
+}
 
 .card{
   background:white;
@@ -44,20 +57,12 @@ header{
   border-radius:12px;
 }
 
-.tag{font-size:12px;background:#eee;padding:3px 8px;border-radius:10px;}
-
-button.action{
-  margin-top:6px;
-  margin-right:5px;
-  padding:5px 8px;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
+.tag{
+  font-size:12px;
+  background:#eee;
+  padding:3px 8px;
+  border-radius:10px;
 }
-
-.edit{background:#ffd43b;}
-.del{background:#ff6b6b;color:white;}
-.addBtn{background:#51cf66;color:white;padding:8px 12px;border:none;border-radius:10px;cursor:pointer;}
 </style>
 </head>
 
@@ -72,126 +77,62 @@ button.action{
   <div>🐱 <span id="catCount">0</span></div>
 </div>
 
-<div style="text-align:center;margin:10px;">
-  <button class="addBtn" onclick="openForm()">+ 등록</button>
-</div>
-
+<!-- ✅ 전체 제거 + 필터만 -->
 <div class="tabs">
-  <button class="active" onclick="setFilter('all',this)">전체</button>
-  <button onclick="setFilter('dog',this)">강아지</button>
+  <button class="active" onclick="setFilter('dog',this)">강아지</button>
   <button onclick="setFilter('cat',this)">고양이</button>
 </div>
 
 <div class="container" id="list"></div>
 
-<!-- 등록 폼 -->
-<div id="formBox" style="display:none;padding:10px;">
-  <input id="type" placeholder="dog / cat"><br><br>
-  <input id="name" placeholder="이름"><br><br>
-  <input id="sex" placeholder="성별"><br><br>
-  <input id="info" placeholder="설명"><br><br>
-  <button onclick="savePet()">저장</button>
-</div>
-
 <script>
 
 let pets = [];
-let filter = "all";
-let editId = null;
+let filter = "dog";
 
 /* ================= API ================= */
 async function loadPets(){
-  try{
-    const res = await fetch("/api/pets");
-    pets = await res.json();
-  }catch{
-    pets = JSON.parse(localStorage.getItem("pets")||"[]");
-  }
+  const res = await fetch("/api/pets");
+  pets = await res.json();
   render();
-}
-
-/* ================= 저장 ================= */
-async function saveToServer(){
-  localStorage.setItem("pets", JSON.stringify(pets));
 }
 
 /* ================= 렌더 ================= */
 function render(){
+
   const list = document.getElementById("list");
   list.innerHTML = "";
 
-  const filtered = pets.filter(p => filter==="all" || p.type===filter);
+  const filtered = pets.filter(p => p.type === filter);
 
   document.getElementById("dogCount").innerText =
-    pets.filter(p=>p.type==="dog").length;
+    pets.filter(p => p.type === "dog").length;
+
   document.getElementById("catCount").innerText =
-    pets.filter(p=>p.type==="cat").length;
+    pets.filter(p => p.type === "cat").length;
 
-  filtered.forEach((p,i)=>{
-
-    const div = document.createElement("div");
-    div.className="card";
-
-    div.innerHTML=`
-      <span class="tag">${p.type}</span>
-      <h3>${p.name}</h3>
-      <div>${p.sex}</div>
-      <div>${p.info}</div>
-
-      <button class="action edit" onclick="editPet(${i})">수정</button>
-      <button class="action del" onclick="deletePet(${i})">삭제</button>
+  filtered.forEach(p => {
+    list.innerHTML += `
+      <div class="card">
+        <span class="tag">${p.type}</span>
+        <h3>${p.name}</h3>
+        <div>${p.sex}</div>
+        <div>${p.info}</div>
+      </div>
     `;
-
-    list.appendChild(div);
   });
 }
 
-/* ================= CRUD ================= */
-function openForm(){
-  document.getElementById("formBox").style.display="block";
-}
+/* ================= 필터 ================= */
+function setFilter(type, btn){
 
-function savePet(){
-  const pet = {
-    type: type.value,
-    name: name.value,
-    sex: sex.value,
-    info: info.value
-  };
+  filter = type;
 
-  if(editId !== null){
-    pets[editId] = pet;
-    editId = null;
-  } else {
-    pets.push(pet);
-  }
-
-  saveToServer();
-  render();
-}
-
-function editPet(i){
-  const p = pets[i];
-  type.value = p.type;
-  name.value = p.name;
-  sex.value = p.sex;
-  info.value = p.info;
-  editId = i;
-  openForm();
-}
-
-function deletePet(i){
-  pets.splice(i,1);
-  saveToServer();
-  render();
-}
-
-/* ================= filter ================= */
-function setFilter(t,btn){
-  filter = t;
   document.querySelectorAll(".tabs button")
-    .forEach(b=>b.classList.remove("active"));
+    .forEach(b => b.classList.remove("active"));
+
   btn.classList.add("active");
+
   render();
 }
 
