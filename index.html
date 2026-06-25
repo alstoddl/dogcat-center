@@ -30,7 +30,6 @@ header h1{margin:0;font-size:22px;}
   font-size:14px;
 }
 
-/* 📝 글쓰기 박스 */
 .form-box{
   background:white;
   margin:10px;
@@ -39,7 +38,7 @@ header h1{margin:0;font-size:22px;}
   box-shadow:0 2px 5px rgba(0,0,0,0.08);
 }
 
-.form-box input, .form-box select, .form-box textarea{
+input,select,textarea{
   width:100%;
   margin:5px 0;
   padding:8px;
@@ -47,14 +46,17 @@ header h1{margin:0;font-size:22px;}
   border:1px solid #ddd;
 }
 
-.form-box button{
-  width:100%;
+button{
   padding:10px;
   border:none;
   border-radius:10px;
+  cursor:pointer;
+}
+
+.primary{
+  width:100%;
   background:#ff6b6b;
   color:white;
-  cursor:pointer;
 }
 
 .tabs{
@@ -65,14 +67,11 @@ header h1{margin:0;font-size:22px;}
 }
 
 .tabs button{
-  padding:8px 14px;
-  border:none;
-  border-radius:20px;
-  cursor:pointer;
   background:#ddd;
+  border-radius:20px;
 }
 
-.tabs button.active{
+.tabs .active{
   background:#ff6b6b;
   color:white;
 }
@@ -90,13 +89,30 @@ header h1{margin:0;font-size:22px;}
 .tag{
   font-size:12px;
   background:#eee;
-  display:inline-block;
   padding:3px 8px;
   border-radius:10px;
+  display:inline-block;
 }
 
-h3{margin:5px 0;}
-.meta{font-size:13px;color:#555;}
+.actions{
+  margin-top:8px;
+  display:flex;
+  gap:5px;
+}
+
+.actions button{
+  flex:1;
+  font-size:12px;
+}
+
+.del{background:#ff4d4d;color:white;}
+.edit{background:#4d7cff;color:white;}
+.like{background:#ffd24d;}
+
+.adminBox{
+  text-align:center;
+  margin:10px;
+}
 
 footer{
   text-align:center;
@@ -114,37 +130,40 @@ footer{
   <div class="sub">건강한 반려동물의 새로운 가족을 찾아드립니다</div>
 </header>
 
-<div class="info">
-  <div>🐶 강아지 <span id="dogCount">0</span>마리</div>
-  <div>🐱 고양이 <span id="catCount">0</span>마리</div>
-  <div>👀 오늘 방문 <span id="todayCount">0</span></div>
+<div class="adminBox">
+  <button onclick="loginAdmin()" id="adminBtn">🔐 관리자 로그인</button>
 </div>
 
-<!-- 📝 글쓰기 기능 -->
+<div class="info">
+  <div>🐶 <span id="dogCount">0</span></div>
+  <div>🐱 <span id="catCount">0</span></div>
+  <div>⭐ <span id="favCount">0</span></div>
+</div>
+
 <div class="form-box">
-  <h3>➕ 반려동물 등록</h3>
+  <h3>반려동물 등록</h3>
 
   <input id="name" placeholder="이름">
-  
+
   <select id="type">
     <option value="dog">🐶 강아지</option>
     <option value="cat">🐱 고양이</option>
   </select>
 
   <select id="sex">
-    <option value="남아">남아</option>
-    <option value="여아">여아</option>
+    <option>남아</option>
+    <option>여아</option>
   </select>
 
   <textarea id="info" placeholder="설명"></textarea>
 
-  <button onclick="addPet()">등록하기</button>
+  <button class="primary" onclick="addPet()">등록하기</button>
 </div>
 
 <div class="tabs">
-  <button class="active" onclick="filterPets('all', this)">전체</button>
-  <button onclick="filterPets('dog', this)">🐶 강아지</button>
-  <button onclick="filterPets('cat', this)">🐱 고양이</button>
+  <button class="active" onclick="filter('all',this)">전체</button>
+  <button onclick="filter('dog',this)">🐶</button>
+  <button onclick="filter('cat',this)">🐱</button>
 </div>
 
 <div class="container" id="list"></div>
@@ -153,123 +172,145 @@ footer{
 
 <script>
 
-/* ======================
-   🐾 데이터 (localStorage)
-====================== */
-let pets = JSON.parse(localStorage.getItem('pets')) || [
-  {type:'dog', name:'말티푸', sex:'여아', info:'활발하고 애교 많음'},
-  {type:'dog', name:'푸들', sex:'남아', info:'똑똑하고 훈련 잘됨'},
-  {type:'cat', name:'러시안블루', sex:'여아', info:'조용하고 깨끗함'}
-];
+let pets = JSON.parse(localStorage.getItem('pets')) || [];
+let isAdmin = false;
+let current = 'all';
 
-let currentFilter = 'all';
+const ADMIN_PW =5833";
 
-/* ======================
-   💾 저장
-====================== */
-function savePets(){
+/* 저장 */
+function save(){
   localStorage.setItem('pets', JSON.stringify(pets));
 }
 
-/* ======================
-   ➕ 글쓰기 기능
-====================== */
+/* 관리자 로그인 */
+function loginAdmin(){
+  const pw = prompt("관리자 비밀번호");
+
+  if(pw === ADMIN_PW){
+    isAdmin = true;
+    document.getElementById("adminBtn").innerText = "🔓 관리자 ON";
+    alert("관리자 로그인 성공");
+    render();
+  }else{
+    alert("비밀번호 틀림");
+  }
+}
+
+/* 등록 */
 function addPet(){
+
+  if(!isAdmin){
+    alert("관리자만 등록 가능합니다");
+    return;
+  }
+
   const name = document.getElementById('name').value;
   const type = document.getElementById('type').value;
   const sex = document.getElementById('sex').value;
   const info = document.getElementById('info').value;
 
-  if(!name || !info){
-    alert('이름과 설명을 입력해주세요!');
-    return;
-  }
+  if(!name || !info) return alert("입력하세요");
 
-  pets.push({type, name, sex, info});
-  savePets();
+  pets.push({
+    id:Date.now(),
+    name,type,sex,info,
+    like:false
+  });
 
-  document.getElementById('name').value = '';
-  document.getElementById('info').value = '';
-
-  updateCounts();
-  renderPets();
+  save();
+  render();
 }
 
-/* ======================
-   👀 방문자 카운트
-====================== */
-function updateVisitor(){
-  const today = new Date().toDateString();
-  const saved = JSON.parse(localStorage.getItem('visitData')) || {};
-
-  if(saved.date !== today){
-    saved.date = today;
-    saved.count = 1;
-  } else {
-    saved.count += 1;
-  }
-
-  localStorage.setItem('visitData', JSON.stringify(saved));
-  document.getElementById('todayCount').innerText = saved.count;
+/* 삭제 */
+function del(id){
+  pets = pets.filter(p=>p.id!==id);
+  save();
+  render();
 }
 
-/* ======================
-   🧮 카운트
-====================== */
-function updateCounts(){
-  const dogCount = pets.filter(p => p.type === 'dog').length;
-  const catCount = pets.filter(p => p.type === 'cat').length;
-
-  document.getElementById('dogCount').innerText = dogCount;
-  document.getElementById('catCount').innerText = catCount;
+/* 찜 */
+function like(id){
+  const p = pets.find(p=>p.id===id);
+  p.like=!p.like;
+  save();
+  render();
 }
 
-/* ======================
-   🧾 리스트
-====================== */
-function renderPets(){
-  const list = document.getElementById('list');
-  list.innerHTML = '';
+/* 수정 */
+function edit(id){
+  const p = pets.find(p=>p.id===id);
 
-  const filtered = pets.filter(p =>
-    currentFilter === 'all' ? true : p.type === currentFilter
+  const n = prompt("이름",p.name);
+  const i = prompt("설명",p.info);
+
+  if(n) p.name=n;
+  if(i) p.info=i;
+
+  save();
+  render();
+}
+
+/* 필터 */
+function filter(type,btn){
+  current=type;
+
+  document.querySelectorAll(".tabs button")
+  .forEach(b=>b.classList.remove("active"));
+
+  btn.classList.add("active");
+
+  render();
+}
+
+/* 카운트 */
+function updateCount(){
+  document.getElementById("dogCount").innerText =
+    pets.filter(p=>p.type==="dog").length;
+
+  document.getElementById("catCount").innerText =
+    pets.filter(p=>p.type==="cat").length;
+
+  document.getElementById("favCount").innerText =
+    pets.filter(p=>p.like).length;
+}
+
+/* 렌더 */
+function render(){
+  const list=document.getElementById("list");
+  list.innerHTML="";
+
+  let filtered = pets.filter(p=>
+    current==="all" ? true : p.type===current
   );
 
-  filtered.forEach(p => {
-    const card = document.createElement('div');
-    card.className = 'card';
+  filtered.forEach(p=>{
+    const div=document.createElement("div");
+    div.className="card";
 
-    card.innerHTML = `
-      <span class="tag">${p.type === 'dog' ? '🐶 강아지' : '🐱 고양이'}</span>
+    div.innerHTML=`
+      <span class="tag">${p.type==="dog"?"🐶":"🐱"}</span>
       <h3>${p.name}</h3>
-      <div class="meta">성별: ${p.sex}</div>
-      <div class="meta">${p.info}</div>
+      <div>성별: ${p.sex}</div>
+      <div>${p.info}</div>
+
+      <div class="actions">
+        <button class="like" onclick="like(${p.id})">⭐</button>
+
+        ${isAdmin ? `
+          <button class="edit" onclick="edit(${p.id})">수정</button>
+          <button class="del" onclick="del(${p.id})">삭제</button>
+        ` : ``}
+      </div>
     `;
 
-    list.appendChild(card);
+    list.appendChild(div);
   });
+
+  updateCount();
 }
 
-/* ======================
-   🎛 필터
-====================== */
-function filterPets(type, btn){
-  currentFilter = type;
-
-  document.querySelectorAll('.tabs button')
-    .forEach(b => b.classList.remove('active'));
-
-  btn.classList.add('active');
-
-  renderPets();
-}
-
-/* ======================
-   🚀 실행
-====================== */
-updateVisitor();
-updateCounts();
-renderPets();
+render();
 
 </script>
 
