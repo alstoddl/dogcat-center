@@ -3,219 +3,144 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>댕냥이 분양센터</title>
+<title>댕냥이 메모</title>
 
 <style>
 body{
   margin:0;
-  font-family:'Noto Sans KR',sans-serif;
-  background:#f3f4f6;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Noto Sans KR",sans-serif;
+  background:#f2f2f7;
 }
 
+/* 상단 */
 header{
-  background:#ff6b6b;
-  color:white;
-  padding:18px;
+  background:#fff;
+  padding:15px;
   text-align:center;
+  font-weight:600;
+  border-bottom:1px solid #e5e5ea;
 }
 
-header h1{margin:0;font-size:22px;}
-.sub{font-size:13px;opacity:0.9;}
-
-.info{
-  display:flex;
-  justify-content:space-around;
-  background:white;
-  padding:10px;
-  font-size:14px;
-}
-
-.form-box{
-  background:white;
+/* 입력 영역 */
+.inputBox{
+  background:#fff;
   margin:10px;
-  padding:10px;
-  border-radius:12px;
-  box-shadow:0 2px 5px rgba(0,0,0,0.08);
+  padding:12px;
+  border-radius:14px;
+  box-shadow:0 1px 2px rgba(0,0,0,0.05);
 }
 
 input,select,textarea{
   width:100%;
-  margin:5px 0;
-  padding:8px;
-  border-radius:8px;
-  border:1px solid #ddd;
+  padding:10px;
+  margin-top:6px;
+  border-radius:10px;
+  border:1px solid #e5e5ea;
+  font-size:14px;
+  background:#fff;
 }
 
 button{
-  padding:10px;
+  width:100%;
+  margin-top:10px;
+  padding:12px;
   border:none;
   border-radius:10px;
-  cursor:pointer;
-}
-
-.primary{
-  width:100%;
-  background:#ff6b6b;
+  background:#007aff;
   color:white;
+  font-weight:600;
 }
 
-.tabs{
-  display:flex;
-  justify-content:center;
-  gap:10px;
+/* 리스트 (아이폰 메모 리스트 느낌) */
+.list{
   margin:10px;
+  background:#fff;
+  border-radius:14px;
+  overflow:hidden;
+  border:1px solid #e5e5ea;
 }
 
-.tabs button{
-  background:#ddd;
-  border-radius:20px;
-}
-
-.tabs .active{
-  background:#ff6b6b;
-  color:white;
-}
-
-.container{padding:10px;}
-
-.card{
-  background:white;
+/* 메모 한 줄 */
+.item{
   padding:12px;
-  margin-bottom:10px;
-  border-radius:12px;
-  box-shadow:0 2px 5px rgba(0,0,0,0.08);
+  border-bottom:1px solid #e5e5ea;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.item:last-child{
+  border-bottom:none;
+}
+
+.left{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+
+.name{
+  font-size:15px;
+  font-weight:500;
+}
+
+.desc{
+  font-size:13px;
+  color:#8e8e93;
 }
 
 .tag{
-  font-size:12px;
-  background:#eee;
-  padding:3px 8px;
-  border-radius:10px;
-  display:inline-block;
-}
-
-.actions{
-  margin-top:8px;
-  display:flex;
-  gap:5px;
+  font-size:11px;
+  padding:3px 6px;
+  border-radius:6px;
+  background:#f2f2f7;
+  color:#555;
 }
 
 .actions button{
-  flex:1;
+  width:auto;
+  padding:6px 10px;
   font-size:12px;
-}
-
-.del{background:#ff4d4d;color:white;}
-.edit{background:#4d7cff;color:white;}
-.like{background:#ffd24d;}
-
-.adminBox{
-  text-align:center;
-  margin:10px;
-}
-
-footer{
-  text-align:center;
-  padding:20px;
-  font-size:12px;
-  color:#888;
+  background:#ff3b30;
 }
 </style>
 </head>
 
 <body>
 
-<header>
-  <h1>🐶🐱 댕냥이 분양센터</h1>
-  <div class="sub">건강한 반려동물의 새로운 가족을 찾아드립니다</div>
-</header>
+<header>🐶🐱 댕냥이 메모</header>
 
-<div class="adminBox">
-  <button onclick="loginAdmin()" id="adminBtn">🔐 관리자 로그인</button>
-</div>
-
-<div class="info">
-  <div>🐶 <span id="dogCount">0</span></div>
-  <div>🐱 <span id="catCount">0</span></div>
-  <div>⭐ <span id="favCount">0</span></div>
-</div>
-
-<div class="form-box">
-  <h3>반려동물 등록</h3>
-
+<div class="inputBox">
   <input id="name" placeholder="이름">
-
   <select id="type">
     <option value="dog">🐶 강아지</option>
     <option value="cat">🐱 고양이</option>
   </select>
-
-  <select id="sex">
-    <option>남아</option>
-    <option>여아</option>
-  </select>
-
   <textarea id="info" placeholder="설명"></textarea>
 
-  <button class="primary" onclick="addPet()">등록하기</button>
+  <button onclick="add()">메모 추가</button>
 </div>
 
-<div class="tabs">
-  <button class="active" onclick="filter('all',this)">전체</button>
-  <button onclick="filter('dog',this)">🐶</button>
-  <button onclick="filter('cat',this)">🐱</button>
-</div>
-
-<div class="container" id="list"></div>
-
-<footer>© 2026 댕냥이 분양센터</footer>
+<div class="list" id="list"></div>
 
 <script>
 
-let pets = JSON.parse(localStorage.getItem('pets')) || [];
-let isAdmin = false;
-let current = 'all';
-
-const ADMIN_PW =5833";
+let pets = JSON.parse(localStorage.getItem("pets")) || [];
 
 /* 저장 */
 function save(){
-  localStorage.setItem('pets', JSON.stringify(pets));
+  localStorage.setItem("pets", JSON.stringify(pets));
 }
 
-/* 관리자 로그인 */
-function loginAdmin(){
-  const pw = prompt("관리자 비밀번호");
-
-  if(pw === ADMIN_PW){
-    isAdmin = true;
-    document.getElementById("adminBtn").innerText = "🔓 관리자 ON";
-    alert("관리자 로그인 성공");
-    render();
-  }else{
-    alert("비밀번호 틀림");
-  }
-}
-
-/* 등록 */
-function addPet(){
-
-  if(!isAdmin){
-    alert("관리자만 등록 가능합니다");
-    return;
-  }
-
-  const name = document.getElementById('name').value;
-  const type = document.getElementById('type').value;
-  const sex = document.getElementById('sex').value;
-  const info = document.getElementById('info').value;
-
-  if(!name || !info) return alert("입력하세요");
+/* 추가 */
+function add(){
+  if(!name.value || !info.value) return;
 
   pets.push({
     id:Date.now(),
-    name,type,sex,info,
-    like:false
+    name:name.value,
+    type:type.value,
+    info:info.value
   });
 
   save();
@@ -229,85 +154,31 @@ function del(id){
   render();
 }
 
-/* 찜 */
-function like(id){
-  const p = pets.find(p=>p.id===id);
-  p.like=!p.like;
-  save();
-  render();
-}
-
-/* 수정 */
-function edit(id){
-  const p = pets.find(p=>p.id===id);
-
-  const n = prompt("이름",p.name);
-  const i = prompt("설명",p.info);
-
-  if(n) p.name=n;
-  if(i) p.info=i;
-
-  save();
-  render();
-}
-
-/* 필터 */
-function filter(type,btn){
-  current=type;
-
-  document.querySelectorAll(".tabs button")
-  .forEach(b=>b.classList.remove("active"));
-
-  btn.classList.add("active");
-
-  render();
-}
-
-/* 카운트 */
-function updateCount(){
-  document.getElementById("dogCount").innerText =
-    pets.filter(p=>p.type==="dog").length;
-
-  document.getElementById("catCount").innerText =
-    pets.filter(p=>p.type==="cat").length;
-
-  document.getElementById("favCount").innerText =
-    pets.filter(p=>p.like).length;
-}
-
 /* 렌더 */
 function render(){
-  const list=document.getElementById("list");
+
+  const list = document.getElementById("list");
   list.innerHTML="";
 
-  let filtered = pets.filter(p=>
-    current==="all" ? true : p.type===current
-  );
+  pets.forEach(p=>{
 
-  filtered.forEach(p=>{
     const div=document.createElement("div");
-    div.className="card";
+    div.className="item";
 
     div.innerHTML=`
-      <span class="tag">${p.type==="dog"?"🐶":"🐱"}</span>
-      <h3>${p.name}</h3>
-      <div>성별: ${p.sex}</div>
-      <div>${p.info}</div>
+      <div class="left">
+        <div class="name">${p.name}</div>
+        <div class="desc">${p.info}</div>
+      </div>
 
-      <div class="actions">
-        <button class="like" onclick="like(${p.id})">⭐</button>
-
-        ${isAdmin ? `
-          <button class="edit" onclick="edit(${p.id})">수정</button>
-          <button class="del" onclick="del(${p.id})">삭제</button>
-        ` : ``}
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="tag">${p.type==="dog"?"🐶":"🐱"}</span>
+        <button onclick="del(${p.id})">삭제</button>
       </div>
     `;
 
     list.appendChild(div);
   });
-
-  updateCount();
 }
 
 render();
@@ -315,4 +186,4 @@ render();
 </script>
 
 </body>
-</html>
+</html>ㅏ
