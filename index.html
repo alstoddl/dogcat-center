@@ -11,12 +11,14 @@ body{
   font-family:'Noto Sans KR',sans-serif;
   background:#f3f4f6;
 }
+
 header{
   background:#ff6b6b;
   color:white;
   padding:18px;
   text-align:center;
 }
+
 header h1{margin:0;font-size:22px;}
 .sub{font-size:13px;opacity:0.9;}
 
@@ -28,12 +30,40 @@ header h1{margin:0;font-size:22px;}
   font-size:14px;
 }
 
+/* 📝 글쓰기 박스 */
+.form-box{
+  background:white;
+  margin:10px;
+  padding:10px;
+  border-radius:12px;
+  box-shadow:0 2px 5px rgba(0,0,0,0.08);
+}
+
+.form-box input, .form-box select, .form-box textarea{
+  width:100%;
+  margin:5px 0;
+  padding:8px;
+  border-radius:8px;
+  border:1px solid #ddd;
+}
+
+.form-box button{
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  background:#ff6b6b;
+  color:white;
+  cursor:pointer;
+}
+
 .tabs{
   display:flex;
   justify-content:center;
   gap:10px;
   margin:10px;
 }
+
 .tabs button{
   padding:8px 14px;
   border:none;
@@ -41,6 +71,7 @@ header h1{margin:0;font-size:22px;}
   cursor:pointer;
   background:#ddd;
 }
+
 .tabs button.active{
   background:#ff6b6b;
   color:white;
@@ -89,6 +120,27 @@ footer{
   <div>👀 오늘 방문 <span id="todayCount">0</span></div>
 </div>
 
+<!-- 📝 글쓰기 기능 -->
+<div class="form-box">
+  <h3>➕ 반려동물 등록</h3>
+
+  <input id="name" placeholder="이름">
+  
+  <select id="type">
+    <option value="dog">🐶 강아지</option>
+    <option value="cat">🐱 고양이</option>
+  </select>
+
+  <select id="sex">
+    <option value="남아">남아</option>
+    <option value="여아">여아</option>
+  </select>
+
+  <textarea id="info" placeholder="설명"></textarea>
+
+  <button onclick="addPet()">등록하기</button>
+</div>
+
 <div class="tabs">
   <button class="active" onclick="filterPets('all', this)">전체</button>
   <button onclick="filterPets('dog', this)">🐶 강아지</button>
@@ -100,20 +152,51 @@ footer{
 <footer>© 2026 댕냥이 분양센터</footer>
 
 <script>
+
 /* ======================
-   🐾 데이터
+   🐾 데이터 (localStorage)
 ====================== */
-const pets = [
+let pets = JSON.parse(localStorage.getItem('pets')) || [
   {type:'dog', name:'말티푸', sex:'여아', info:'활발하고 애교 많음'},
   {type:'dog', name:'푸들', sex:'남아', info:'똑똑하고 훈련 잘됨'},
-  {type:'cat', name:'러시안블루', sex:'여아', info:'조용하고 깨끗함'},
-  {type:'cat', name:'코리안숏헤어', sex:'남아', info:'사람 잘 따름'}
+  {type:'cat', name:'러시안블루', sex:'여아', info:'조용하고 깨끗함'}
 ];
 
 let currentFilter = 'all';
 
 /* ======================
-   👀 방문자 카운트 (매일 초기화)
+   💾 저장
+====================== */
+function savePets(){
+  localStorage.setItem('pets', JSON.stringify(pets));
+}
+
+/* ======================
+   ➕ 글쓰기 기능
+====================== */
+function addPet(){
+  const name = document.getElementById('name').value;
+  const type = document.getElementById('type').value;
+  const sex = document.getElementById('sex').value;
+  const info = document.getElementById('info').value;
+
+  if(!name || !info){
+    alert('이름과 설명을 입력해주세요!');
+    return;
+  }
+
+  pets.push({type, name, sex, info});
+  savePets();
+
+  document.getElementById('name').value = '';
+  document.getElementById('info').value = '';
+
+  updateCounts();
+  renderPets();
+}
+
+/* ======================
+   👀 방문자 카운트
 ====================== */
 function updateVisitor(){
   const today = new Date().toDateString();
@@ -131,7 +214,7 @@ function updateVisitor(){
 }
 
 /* ======================
-   🧮 카운트 업데이트
+   🧮 카운트
 ====================== */
 function updateCounts(){
   const dogCount = pets.filter(p => p.type === 'dog').length;
@@ -142,13 +225,13 @@ function updateCounts(){
 }
 
 /* ======================
-   🧾 리스트 출력
+   🧾 리스트
 ====================== */
 function renderPets(){
   const list = document.getElementById('list');
   list.innerHTML = '';
 
-  const filtered = pets.filter(p => 
+  const filtered = pets.filter(p =>
     currentFilter === 'all' ? true : p.type === currentFilter
   );
 
@@ -182,11 +265,12 @@ function filterPets(type, btn){
 }
 
 /* ======================
-   🚀 초기 실행
+   🚀 실행
 ====================== */
 updateVisitor();
 updateCounts();
 renderPets();
+
 </script>
 
 </body>
