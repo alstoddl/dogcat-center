@@ -1,19 +1,8 @@
 <!doctype html>
 <html lang="ko">
 <head>
-
-  <h1>🐶🐱 댕냥이 분양센터</h1>
-
-  <p>
-    강아지 <span id="dogCount">0</span>마리 |
-    고양이 <span id="catCount">0</span>마리 등록
-  </p>
-
-  <div id="count">(today : 0)</div>
-  </header>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <title>댕냥이 분양센터</title>
 
 <style>
@@ -29,9 +18,7 @@ header{
   padding:30px;
 }
 
-h1{
-  margin:0;
-}
+h1{ margin:0; }
 
 #count{
   color:#666;
@@ -86,13 +73,8 @@ h1{
   font-size:12px;
 }
 
-.dog{
-  background:#4caf50;
-}
-
-.cat{
-  background:#ff9800;
-}
+.dog{ background:#4caf50; }
+.cat{ background:#ff9800; }
 
 .footer{
   text-align:center;
@@ -107,6 +89,10 @@ h1{
 <header>
   <h1>🐶🐱 댕냥이 분양센터</h1>
   <p>건강한 반려동물의 새로운 가족을 찾아드립니다</p>
+  <p>
+    강아지 <span id="dogCount">0</span>마리 |
+    고양이 <span id="catCount">0</span>마리 등록
+  </p>
   <div id="count">(today : 0)</div>
 </header>
 
@@ -160,38 +146,28 @@ h1{
 </div>
 
 <script>
-  <script>
 function updatePetCounts(){
+  const dogCount = document.querySelectorAll('.dog-card').length;
+  const catCount = document.querySelectorAll('.cat-card').length;
 
-  const dogCount =
-    document.querySelectorAll('.dog-card').length;
-
-  const catCount =
-    document.querySelectorAll('.cat-card').length;
-
-  document.getElementById('dogCount').textContent =
-    dogCount;
-
-  document.getElementById('catCount').textContent =
-    catCount;
+  document.getElementById('dogCount').textContent = dogCount;
+  document.getElementById('catCount').textContent = catCount;
 }
-</script>
-function showPets(type){
 
+function showPets(type){
   const dogs = document.querySelectorAll('.dog-card');
   const cats = document.querySelectorAll('.cat-card');
 
   if(type === 'dog'){
     dogs.forEach(el => el.style.display='block');
     cats.forEach(el => el.style.display='none');
-  }else{
+  } else {
     dogs.forEach(el => el.style.display='none');
     cats.forEach(el => el.style.display='block');
   }
 }
 
 function updateVisitorCount(){
-
   const today = new Date().toISOString().slice(0,10);
 
   let savedDate = localStorage.getItem("visitDate");
@@ -199,25 +175,21 @@ function updateVisitorCount(){
 
   if(savedDate !== today){
     count = 0;
-    localStorage.setItem("visitDate",today);
+    localStorage.setItem("visitDate", today);
   }
 
   count++;
 
-  localStorage.setItem("visitCount",count);
+  localStorage.setItem("visitCount", count);
 
   document.getElementById("count").textContent =
     "(today : " + count + ")";
 }
 
 window.onload = function(){
-
   showPets('dog');
-
   updateVisitorCount();
-
   updatePetCounts();
-
 }
 </script>
 
