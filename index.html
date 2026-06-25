@@ -6,12 +6,12 @@ app.use(cors());
 app.use(express.json());
 
 /* =========================
-   📦 데이터 저장 (메모리)
+   📦 서버 데이터 (CRUD only)
 ========================= */
 let pets = [];
 
 /* =========================
-   🌐 API
+   🌐 API (무조건 여기로만 조작)4
 ========================= */
 
 /* 목록 */
@@ -21,12 +21,14 @@ app.get("/api/pets", (req, res) => {
 
 /* 등록 */
 app.post("/api/pets", (req, res) => {
+  const { name, type, sex, info } = req.body;
+
   const pet = {
     id: Date.now(),
-    name: req.body.name,
-    type: req.body.type,
-    sex: req.body.sex,
-    info: req.body.info,
+    name,
+    type,
+    sex,
+    info,
     like: false
   };
 
@@ -53,7 +55,7 @@ app.delete("/api/pets/:id", (req, res) => {
 });
 
 /* =========================
-   🌐 프론트 HTML 서빙
+   🌐 FRONT (포스트잇 앱)
 ========================= */
 app.get("/", (req, res) => {
   res.send(`
@@ -62,52 +64,108 @@ app.get("/", (req, res) => {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>댕냥이 분양센터</title>
+<title>댕냥이 포스트잇</title>
 
 <style>
-body{font-family:sans-serif;margin:0;background:#f2f4f8}
-header{background:#ff6b6b;color:#fff;padding:15px;text-align:center}
-.container{padding:10px}
-.card{background:#fff;padding:10px;margin:10px 0;border-radius:10px}
-input,select{margin:3px;padding:5px;width:100%}
-button{margin:2px;padding:6px}
+body{
+  margin:0;
+  font-family:sans-serif;
+  background:#eef0f5;
+  overflow:hidden;
+}
+
+header{
+  background:#ff6b6b;
+  color:#fff;
+  text-align:center;
+  padding:12px;
+  font-weight:bold;
+}
+
+#panel{
+  position:fixed;
+  top:60px;
+  left:10px;
+  width:220px;
+  background:#fff;
+  padding:10px;
+  border-radius:12px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.2);
+  z-index:1000;
+}
+
+input,select{
+  width:100%;
+  margin:3px 0;
+  padding:6px;
+}
+
+button{
+  width:100%;
+  padding:6px;
+  margin-top:5px;
+}
+
+#board{
+  position:relative;
+  width:100vw;
+  height:100vh;
+}
+
+.note{
+  position:absolute;
+  width:180px;
+  min-height:120px;
+  background:#fff7a8;
+  padding:10px;
+  border-radius:12px;
+  box-shadow:0 8px 20px rgba(0,0,0,0.15);
+  cursor:grab;
+  user-select:none;
+}
 </style>
 </head>
 
 <body>
 
-<header>🐶🐱 댕냥이 분양센터 (통합버전)</header>
+<header>🐶🐱 댕냥이 포스트잇 분양센터</header>
 
-<div class="container">
-
+<div id="panel">
   <input id="name" placeholder="이름">
   <select id="type">
     <option value="dog">🐶 강아지</option>
     <option value="cat">🐱 고양이</option>
   </select>
-
   <input id="sex" placeholder="성별">
   <input id="info" placeholder="설명">
-
   <button onclick="addPet()">등록</button>
-
-  <div id="list"></div>
-
 </div>
+
+<div id="board"></div>
 
 <script>
 
 const API = "/api/pets";
-let pets = [];
 
-/* 조회 */
+let pets = [];
+let pos = JSON.parse(localStorage.getItem("pos") || "{}");
+
+let dragId = null;
+let offsetX = 0;
+let offsetY = 0;
+
+/* =========================
+   📡 API LOAD
+========================= */
 async function load(){
   const res = await fetch(API);
   pets = await res.json();
   render();
 }
 
-/* 등록 */
+/* =========================
+   ➕ 등록 (API)
+========================= */
 async function addPet(){
   await fetch(API,{
     method:"POST",
@@ -123,13 +181,17 @@ async function addPet(){
   load();
 }
 
-/* 삭제 */
+/* =========================
+   🗑 삭제 (API)
+========================= */
 async function del(id){
-  await fetch(`${API}/${id}`,{method:"DELETE"});
+  await fetch(`${API}/${id}`,{ method:"DELETE" });
   load();
 }
 
-/* 수정 */
+/* =========================
+   ✏️ 수정 (API)
+========================= */
 async function edit(id){
   const name = prompt("이름");
   const info = prompt("설명");
@@ -143,25 +205,69 @@ async function edit(id){
   load();
 }
 
-/* 렌더 */
+/* =========================
+   🧲 드래그
+========================= */
+function startDrag(e,id){
+  dragId = id;
+
+  const p = pos[id] || {x:200,y:200};
+
+  offsetX = e.clientX - p.x;
+  offsetY = e.clientY - p.y;
+}
+
+window.addEventListener("mousemove",(e)=>{
+  if(!dragId) return;
+
+  pos[dragId] = {
+    x: e.clientX - offsetX,
+    y: e.clientY - offsetY
+  };
+
+  localStorage.setItem("pos", JSON.stringify(pos));
+  render();
+});
+
+window.addEventListener("mouseup",()=>{
+  dragId = null;
+});
+
+/* =========================
+   🎨 렌더
+========================= */
 function render(){
-  const list = document.getElementById("list");
-  list.innerHTML="";
+  const board = document.getElementById("board");
+  board.innerHTML = "";
 
   pets.forEach(p=>{
-    const div = document.createElement("div");
-    div.className="card";
 
-    div.innerHTML=`
-      <b>${p.name}</b> (${p.type})<br>
+    if(!pos[p.id]){
+      pos[p.id] = {
+        x: Math.random()*500 + 200,
+        y: Math.random()*300 + 150
+      };
+    }
+
+    const div = document.createElement("div");
+    div.className = "note";
+
+    div.style.left = pos[p.id].x + "px";
+    div.style.top = pos[p.id].y + "px";
+
+    div.onmousedown = (e)=>startDrag(e,p.id);
+
+    div.innerHTML = `
+      <b>${p.name}</b><br>
+      ${p.type}<br>
       ${p.sex}<br>
-      ${p.info}<br>
+      ${p.info}<br><br>
 
       <button onclick="edit(${p.id})">수정</button>
       <button onclick="del(${p.id})">삭제</button>
     `;
 
-    list.appendChild(div);
+    board.appendChild(div);
   });
 }
 
