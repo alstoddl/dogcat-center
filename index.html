@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="ko">
 <head>
@@ -12,7 +13,6 @@ body{
   background:#f3f4f6;
 }
 
-/* HEADER */
 header{
   background:#ff6b6b;
   color:white;
@@ -30,7 +30,6 @@ header h1{
   opacity:0.9;
 }
 
-/* INFO BAR */
 .info{
   display:flex;
   justify-content:space-around;
@@ -39,7 +38,6 @@ header h1{
   font-size:14px;
 }
 
-/* FILTER */
 .tabs{
   display:flex;
   justify-content:center;
@@ -60,7 +58,6 @@ header h1{
   color:white;
 }
 
-/* CARD */
 .container{
   padding:10px;
 }
@@ -109,13 +106,13 @@ footer{
 <div class="info">
   <div>🐶 강아지 <span id="dogCount">0</span>마리</div>
   <div>🐱 고양이 <span id="catCount">0</span>마리</div>
-  <div>(today : <span id="todayCount">0</span>)</div>
+  <div>👀 오늘 방문 <span id="todayCount">0</span></div>
 </div>
 
 <div class="tabs">
-  <button class="active" onclick="filter('all')">전체</button>
-  <button onclick="filter('dog')">🐶 강아지</button>
-  <button onclick="filter('cat')">🐱 고양이</button>
+  <button class="active" onclick="filterPets('all', this)">전체</button>
+  <button onclick="filterPets('dog', this)">🐶 강아지</button>
+  <button onclick="filterPets('cat', this)">🐱 고양이</button>
 </div>
 
 <div class="container" id="list"></div>
@@ -124,53 +121,4 @@ footer{
 
 <script>
 const pets = [
-  {type:'dog', name:'말티푸', sex:'여아', info:'접종 완료', age:'2개월'},
-  {type:'dog', name:'포메라니안', sex:'남아', info:'접종 완료', age:'2개월'},
-  {type:'cat', name:'실버뱅갈', sex:'남아', info:'건강검진 완료', age:'3개월'},
-  {type:'cat', name:'브리티시숏헤어', sex:'여아', info:'건강검진 완료', age:'2개월'}
-];
-
-let today = 0;
-
-function render(filterType){
-  const list = document.getElementById('list');
-  list.innerHTML = "";
-
-  let dog = 0;
-  let cat = 0;
-
-  pets.forEach(p=>{
-    if(p.type === 'dog') dog++;
-    if(p.type === 'cat') cat++;
-
-    if(filterType !== 'all' && p.type !== filterType) return;
-
-    list.innerHTML += `
-      <div class="card">
-        <div class="tag">${p.type === 'dog' ? '🐶 강아지' : '🐱 고양이'}</div>
-        <h3>${p.name}</h3>
-        <div class="meta">성별 : ${p.sex}</div>
-        <div class="meta">${p.info}</div>
-        <div class="meta">${p.age}</div>
-      </div>
-    `;
-  });
-
-  document.getElementById('dogCount').innerText = dog;
-  document.getElementById('catCount').innerText = cat;
-  document.getElementById('todayCount').innerText = today;
-}
-
-function filter(type){
-  document.querySelectorAll('.tabs button')
-    .forEach(b=>b.classList.remove('active'));
-
-  event.target.classList.add('active');
-  render(type);
-}
-
-render('all');
-</script>
-
-</body>
-</html
+  {type:'dog', name:'말티푸', sex:'여아', info
