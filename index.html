@@ -9,80 +9,113 @@
 body{
   margin:0;
   font-family:'Noto Sans KR',sans-serif;
-  background:#f5f5f5;
+  background:#eef0f3;
 }
 
 /* HEADER */
 header{
-  background:#ffcc4d;
+  background:linear-gradient(90deg,#ffd54f,#ffb300);
   text-align:center;
-  padding:30px;
-}
-
-h1{ margin:0; }
-
-#count{
-  color:#666;
-  font-size:14px;
+  padding:20px;
+  color:#222;
 }
 
 /* MENU */
 .menu{
   display:flex;
   justify-content:center;
-  gap:15px;
-  margin:20px;
+  gap:10px;
+  margin:10px;
+  flex-wrap:wrap;
 }
 
-.menu button{
-  padding:12px 20px;
+button{
+  padding:10px 14px;
   border:none;
   border-radius:10px;
-  background:#fff;
   cursor:pointer;
-  font-size:16px;
   font-weight:bold;
+  background:white;
+}
+
+/* FORM */
+.form{
+  display:none;
+  background:#fff;
+  padding:15px;
+  margin:10px auto;
+  width:90%;
+  max-width:420px;
+  border-radius:12px;
+  box-shadow:0 10px 25px rgba(0,0,0,.1);
+}
+
+.form input,.form textarea,.form select{
+  width:100%;
+  margin:5px 0;
+  padding:8px;
 }
 
 /* BOARD */
 .board{
-  display:flex;
-  flex-wrap:wrap;
-  justify-content:center;
-  gap:20px;
-  padding:20px;
-}
-
-.card{
-  width:250px;
-  background:#fff7a8;
-  border-radius:15px;
-  padding:15px;
-  box-shadow:0 3px 10px rgba(0,0,0,.1);
   position:relative;
+  height:75vh;
+  overflow:hidden;
 }
 
-.pin{
+/* CARD */
+.card{
+  width:180px;
+  background:#fff;
+  border-radius:15px;
+  padding:10px;
+  box-shadow:0 8px 18px rgba(0,0,0,.15);
   position:absolute;
-  top:5px;
-  right:10px;
+  cursor:grab;
+}
+
+.card img{
+  width:100%;
+  height:100px;
+  object-fit:cover;
+  border-radius:10px;
 }
 
 .badge{
   display:inline-block;
-  padding:4px 8px;
-  border-radius:6px;
+  padding:3px 6px;
+  border-radius:5px;
   color:white;
   font-size:12px;
 }
 
-.dog{ background:#4caf50; }
-.cat{ background:#ff9800; }
+.dog{background:#4caf50;}
+.cat{background:#ff9800;}
+
+.heart{
+  position:absolute;
+  top:8px;
+  right:10px;
+  cursor:pointer;
+  font-size:18px;
+}
+
+.delete{
+  background:#ff4d4d;
+  color:white;
+  font-size:12px;
+  border:none;
+  border-radius:6px;
+  padding:3px 6px;
+  margin-top:5px;
+  cursor:pointer;
+}
 
 .footer{
   text-align:center;
-  padding:20px;
+  padding:10px;
   color:#777;
+  font-size:12px;
 }
 </style>
 </head>
@@ -91,115 +124,186 @@ h1{ margin:0; }
 
 <header>
   <h1>🐶🐱 댕냥이 분양센터</h1>
-  <p>건강한 반려동물의 새로운 가족을 찾아드립니다</p>
-
-  <p>
-    강아지 <span id="dogCount">0</span>마리 |
-    고양이 <span id="catCount">0</span>마리 등록
-  </p>
-
-  <div id="count">(today : 0)</div>
+  <p>강아지 <span id="dogCount">0</span> | 고양이 <span id="catCount">0</span></p>
 </header>
 
 <div class="menu">
-  <button onclick="showPets('dog')">🐶 강아지</button>
-  <button onclick="showPets('cat')">🐱 고양이</button>
+  <button onclick="showAll()">전체</button>
+  <button onclick="filter('dog')">🐶 강아지</button>
+  <button onclick="filter('cat')">🐱 고양이</button>
+  <button onclick="toggleForm()">✍ 글쓰기</button>
 </div>
 
-<div class="board">
+<!-- 글쓰기 -->
+<div class="form" id="form">
+  <h3>글쓰기</h3>
 
-  <div class="card dog-card">
-    <div class="pin">📌</div>
-    <span class="badge dog">강아지</span>
-    <h3>말티푸</h3>
-    <p>성별 : 여아</p>
-    <p>접종 완료</p>
-    <p>2개월</p>
-  </div>
+  <select id="type">
+    <option value="dog">강아지</option>
+    <option value="cat">고양이</option>
+  </select>
 
-  <div class="card dog-card">
-    <div class="pin">📌</div>
-    <span class="badge dog">강아지</span>
-    <h3>포메라니안</h3>
-    <p>성별 : 남아</p>
-    <p>접종 완료</p>
-    <p>2개월</p>
-  </div>
+  <input id="name" placeholder="이름">
+  <input id="img" placeholder="이미지 URL (선택)">
+  <textarea id="desc" placeholder="설명"></textarea>
 
-  <div class="card cat-card">
-    <div class="pin">📌</div>
-    <span class="badge cat">고양이</span>
-    <h3>실버뱅갈</h3>
-    <p>성별 : 남아</p>
-    <p>건강검진 완료</p>
-    <p>3개월</p>
-  </div>
-
-  <div class="card cat-card">
-    <div class="pin">📌</div>
-    <span class="badge cat">고양이</span>
-    <h3>브리티시숏헤어</h3>
-    <p>성별 : 여아</p>
-    <p>건강검진 완료</p>
-    <p>2개월</p>
-  </div>
-
+  <button onclick="addPost()">등록</button>
 </div>
 
-<div class="footer">
-  © 2026 댕냥이 분양센터
-</div>
+<div class="board" id="board"></div>
+
+<div class="footer">© 2026 댕냥이 분양센터</div>
 
 <script>
-// 🐶🐱 필터 기능
-function showPets(type){
-  const dogs = document.querySelectorAll('.dog-card');
-  const cats = document.querySelectorAll('.cat-card');
 
-  if(type === 'dog'){
-    dogs.forEach(el => el.style.display = 'block');
-    cats.forEach(el => el.style.display = 'none');
-  } else {
-    dogs.forEach(el => el.style.display = 'none');
-    cats.forEach(el => el.style.display = 'block');
+let pets = JSON.parse(localStorage.getItem("pets")) || [];
+
+if(pets.length === 0){
+  pets = [
+    {id:1,type:"dog",name:"말티푸",desc:"귀여움",img:"https://place-puppy.com/200x200",x:50,y:80,like:false},
+    {id:2,type:"cat",name:"실버뱅갈",desc:"활발함",img:"https://placekitten.com/200/200",x:120,y:200,like:false}
+  ];
+  save();
+}
+
+function save(){
+  localStorage.setItem("pets", JSON.stringify(pets));
+}
+
+/* 렌더 */
+function render(){
+  const board = document.getElementById("board");
+  board.innerHTML="";
+
+  let dog=0, cat=0;
+
+  pets.forEach(p=>{
+    if(p.type==="dog") dog++;
+    if(p.type==="cat") cat++;
+
+    const el=document.createElement("div");
+    el.className="card "+p.type;
+    el.style.left=(p.x||0)+"px";
+    el.style.top=(p.y||0)+"px";
+
+    el.innerHTML=
+      <div class="heart" onclick="toggleLike(${p.id})">
+        ${p.like ? "❤️":"🤍"}
+      </div>
+
+      <span class="badge ${p.type}">
+        ${p.type==="dog"?"강아지":"고양이"}
+      </span>
+
+      <img src="${p.img || 'https://via.placeholder.com/200'}">
+
+      <h3>${p.name}</h3>
+      <p>${p.desc || ""}</p>
+
+      <button class="delete" onclick="removePet(${p.id})">삭제</button>
+    ;
+
+    drag(el,p);
+    board.appendChild(el);
+  });
+
+  document.getElementById("dogCount").innerText=dog;
+  document.getElementById("catCount").innerText=cat;
+}
+
+/* 글쓰기 */
+function toggleForm(){
+  const f=document.getElementById("form");
+  f.style.display = f.style.display==="block"?"none":"block";
+}
+function addPost(){
+  const type=document.getElementById("type").value;
+  const name=document.getElementById("name").value;
+  const desc=document.getElementById("desc").value;
+  const img=document.getElementById("img").value;
+
+  if(!name) return alert("이름 입력");
+
+  pets.push({
+    id:Date.now(),
+    type,
+    name,
+    desc,
+    img,
+    x:100,
+    y:100,
+    like:false
+  });
+
+  save();
+  render();
+
+  document.getElementById("name").value="";
+  document.getElementById("desc").value="";
+  document.getElementById("img").value="";
+  toggleForm();
+}
+
+/* 삭제 */
+function removePet(id){
+  pets=pets.filter(p=>p.id!==id);
+  save();
+  render();
+}
+
+/* 좋아요 */
+function toggleLike(id){
+  const p=pets.find(x=>x.id===id);
+  if(p){
+    p.like=!p.like;
+    save();
+    render();
   }
 }
 
-// 📊 동물 카운트
-function updatePetCounts(){
-  const dogCount = document.querySelectorAll('.dog-card').length;
-  const catCount = document.querySelectorAll('.cat-card').length;
-
-  document.getElementById('dogCount').textContent = dogCount;
-  document.getElementById('catCount').textContent = catCount;
+/* 필터 */
+function filter(type){
+  document.querySelectorAll(".card").forEach(c=>{
+    c.style.display=c.classList.contains(type)?"block":"none";
+  });
 }
 
-// 👀 방문자 카운트 (localStorage)
-function updateVisitorCount(){
-  const today = new Date().toISOString().slice(0,10);
-
-  let savedDate = localStorage.getItem("visitDate");
-  let count = parseInt(localStorage.getItem("visitCount") || "0");
-
-  if(savedDate !== today){
-    count = 0;
-    localStorage.setItem("visitDate", today);
-  }
-
-  count++;
-
-  localStorage.setItem("visitCount", count);
-
-  document.getElementById("count").textContent =
-    "(today : " + count + ")";
+function showAll(){
+  document.querySelectorAll(".card").forEach(c=>{
+    c.style.display="block";
+  });
 }
 
-// 🚀 초기 실행
-window.onload = function(){
-  showPets('dog');
-  updatePetCounts();
-  updateVisitorCount();
-};
+/* 드래그 */
+function drag(el,p){
+  let ox,oy,on=false;
+
+  el.addEventListener("mousedown",e=>{
+    on=true;
+    ox=e.offsetX;
+    oy=e.offsetY;
+  });
+
+  document.addEventListener("mousemove",e=>{
+    if(!on) return;
+
+    p.x=e.pageX-ox;
+    p.y=e.pageY-oy;
+
+    el.style.left=p.x+"px";
+    el.style.top=p.y+"px";
+  });
+
+  document.addEventListener("mouseup",()=>{
+    if(on){
+      on=false;
+      save();
+    }
+  });
+}
+
+render();
+
 </script>
 
 </body>
