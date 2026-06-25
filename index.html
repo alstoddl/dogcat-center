@@ -1,143 +1,138 @@
-document.addEventListener('DOMContentLoaded', initApp);
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>댕냥이 분양센터</title>
 
-function initApp() {
-  initData();
-  initUI();
-  initEvents();
-  initAdmin();
-}
-
-/* =========================
-   📦 데이터
-========================= */
-function initData() {
-  loadPets();
-  loadFavorites();
-  loadVisitors();
-}
-
-function loadPets() {
-  window.pets = JSON.parse(localStorage.getItem('pets')) || [];
-}
-
-function loadFavorites() {
-  window.favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-}
-
-function loadVisitors() {
-  let count = localStorage.getItem('visitors') || 0;
-  count = Number(count) + 1;
-  localStorage.setItem('visitors', count);
-  window.visitors = count;
-}
-
-/* =========================
-   🖥️ UI 초기화
-========================= */
-function initUI() {
-  showPets('dog');
-  updatePetCounts();
-  updateVisitorCount();
-}
-
-function updateVisitorCount() {
-  const el = document.getElementById('visitorCount');
-  if (el) el.innerText = window.visitors || 0;
-}
-
-function updatePetCounts() {
-  const dogs = pets.filter(p => p.type === 'dog').length;
-  const cats = pets.filter(p => p.type === 'cat').length;
-
-  const dogEl = document.getElementById('dogCount');
-  const catEl = document.getElementById('catCount');
-
-  if (dogEl) dogEl.innerText = dogs;
-  if (catEl) catEl.innerText = cats;
-}
-
-/* =========================
-   🐾 펫 출력
-========================= */
-function showPets(type) {
-  const container = document.getElementById('petList');
-  if (!container) return;
-
-  container.innerHTML = '';
-
-  pets
-    .filter(p => p.type === type)
-    .forEach((pet, index) => {
-      const isFav = favorites.includes(pet.id);
-
-      container.innerHTML += 
-        <div class="pet-card">
-          <img src="${pet.image || 'default.jpg'}" />
-          <h3>${pet.name}</h3>
-          <button onclick="toggleFavorite('${pet.id}')">
-            ${isFav ? '❤️ 찜됨' : '🤍 찜하기'}
-          </button>
-
-          <button class="delete-btn" onclick="deletePet('${pet.id}')">
-            삭제
-          </button>
-        </div>
-      ;
-    });
-}
-
-/* =========================
-   ❤️ 찜 기능
-========================= */
-function toggleFavorite(id) {
-  if (favorites.includes(id)) {
-    favorites = favorites.filter(f => f !== id);
-  } else {
-    favorites.push(id);
+<style>
+  body{
+    font-family: Arial;
+    background:#f5f6f7;
+    margin:0;
+    padding:20px;
   }
 
-  localStorage.setItem('favorites', JSON.stringify(favorites));
-  showPets(currentType());
+  h1{
+    text-align:center;
+  }
+
+  .top-info{
+    text-align:center;
+    margin-bottom:20px;
+  }
+
+  .tab-btn{
+    padding:10px 15px;
+    margin:5px;
+    border:none;
+    cursor:pointer;
+    border-radius:8px;
+    background:#ddd;
+  }
+
+  .active{
+    background:#333;
+    color:#fff;
+  }
+
+  .form-box{
+    margin:20px auto;
+    max-width:400px;
+    background:#fff;
+    padding:15px;
+    border-radius:10px;
+  }
+
+  input, select{
+    width:100%;
+    padding:8px;
+    margin:5px 0;
+  }
+
+  button{
+    cursor:pointer;
+  }
+
+  #petList{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:10px;
+    margin-top:20px;
+  }
+
+  .pet-card{
+    background:#fff;
+    padding:10px;
+    border-radius:10px;
+    text-align:center;
+  }
+
+  .pet-card img{
+    width:100%;
+    height:120px;
+    object-fit:cover;
+    border-radius:8px;
+  }
+
+  .pet-card button{
+    margin-top:5px;
+    padding:5px;
+    width:100%;
+  }
+</style>
+</head>
+
+<body>
+
+<h1>🐶🐱 댕냥이 분양센터</h1>
+
+<div class="top-info">
+  🐶 강아지 <span id="dogCount">0</span>마리 |
+  🐱 고양이 <span id="catCount">0</span>마리 |
+  👀 방문자 <span id="visitorCount">0</span>
+</div>
+
+<div style="text-align:center;">
+  <button class="tab-btn active" data-type="dog">강아지</button>
+  <button class="tab-btn" data-type="cat">고양이</button>
+</div>
+
+<!-- ✍️ 글쓰기 -->
+<div class="form-box">
+  <h3>🐾 분양 글쓰기</h3>
+
+  <input id="petName" placeholder="이름" />
+  
+  <select id="petType">
+    <option value="dog">강아지</option>
+    <option value="cat">고양이</option>
+  </select>
+
+  <input id="petImage" placeholder="이미지 URL" />
+
+  <button id="addBtn">등록하기</button>
+</div>
+
+<!-- 리스트 -->
+<div id="petList"></div>
+
+<script>
+let pets = [];
+let favorites = [];
+let visitors = 0;
+
+/* ================= init ================= */
+document.addEventListener('DOMContentLoaded', init);
+
+function init(){
+  load();
+  visitor();
+  bind();
+  render('dog');
+  update();
 }
 
-function currentType() {
-  const active = document.querySelector('.tab-active');
-  return active ? active.dataset.type : 'dog';
-}
-
-/* =========================
-   🗑️ 삭제 기능 (관리자용)
-========================= */
-function deletePet(id) {
-  if (!confirm('삭제할까요?')) return;
-
-  pets = pets.filter(p => p.id !== id);
-  localStorage.setItem('pets', JSON.stringify(pets));
-
-  showPets(currentType());
-  updatePetCounts();
-}
-
-/* =========================
-   🎯 이벤트
-========================= */
-function initEvents() {
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('tab-active'));
-      e.target.classList.add('tab-active');
-
-      showPets(e.target.dataset.type);
-    });
-  });
-}
-
-/* =========================
-   🛠️ 관리자 기능
-========================= */
-function initAdmin() {
-  const isAdmin = localStorage.getItem('admin') === 'true';
-  if (!isAdmin) return;
-
-  document.body.classList.add('admin-mode');
-}
+/* ================= data ================= */
+function load(){
+  pets = JSON.parse(localStorage.getItem('
