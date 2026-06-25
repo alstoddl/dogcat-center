@@ -1,189 +1,182 @@
+const express = require("express");
+const app = express();
+const cors = require("cors");
+
+app.use(cors());
+app.use(express.json());
+
+/* =========================
+   📦 데이터 저장 (메모리)
+========================= */
+let pets = [];
+
+/* =========================
+   🌐 API
+========================= */
+
+/* 목록 */
+app.get("/api/pets", (req, res) => {
+  res.json(pets);
+});
+
+/* 등록 */
+app.post("/api/pets", (req, res) => {
+  const pet = {
+    id: Date.now(),
+    name: req.body.name,
+    type: req.body.type,
+    sex: req.body.sex,
+    info: req.body.info,
+    like: false
+  };
+
+  pets.push(pet);
+  res.json(pet);
+});
+
+/* 수정 */
+app.put("/api/pets/:id", (req, res) => {
+  const id = Number(req.params.id);
+
+  pets = pets.map(p =>
+    p.id === id ? { ...p, ...req.body } : p
+  );
+
+  res.json({ ok: true });
+});
+
+/* 삭제 */
+app.delete("/api/pets/:id", (req, res) => {
+  const id = Number(req.params.id);
+  pets = pets.filter(p => p.id !== id);
+  res.json({ ok: true });
+});
+
+/* =========================
+   🌐 프론트 HTML 서빙
+========================= */
+app.get("/", (req, res) => {
+  res.send(`
 <!doctype html>
 <html lang="ko">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>댕냥이 메모</title>
+<title>댕냥이 분양센터</title>
 
 <style>
-body{
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Noto Sans KR",sans-serif;
-  background:#f2f2f7;
-}
-
-/* 상단 */
-header{
-  background:#fff;
-  padding:15px;
-  text-align:center;
-  font-weight:600;
-  border-bottom:1px solid #e5e5ea;
-}
-
-/* 입력 영역 */
-.inputBox{
-  background:#fff;
-  margin:10px;
-  padding:12px;
-  border-radius:14px;
-  box-shadow:0 1px 2px rgba(0,0,0,0.05);
-}
-
-input,select,textarea{
-  width:100%;
-  padding:10px;
-  margin-top:6px;
-  border-radius:10px;
-  border:1px solid #e5e5ea;
-  font-size:14px;
-  background:#fff;
-}
-
-button{
-  width:100%;
-  margin-top:10px;
-  padding:12px;
-  border:none;
-  border-radius:10px;
-  background:#007aff;
-  color:white;
-  font-weight:600;
-}
-
-/* 리스트 (아이폰 메모 리스트 느낌) */
-.list{
-  margin:10px;
-  background:#fff;
-  border-radius:14px;
-  overflow:hidden;
-  border:1px solid #e5e5ea;
-}
-
-/* 메모 한 줄 */
-.item{
-  padding:12px;
-  border-bottom:1px solid #e5e5ea;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.item:last-child{
-  border-bottom:none;
-}
-
-.left{
-  display:flex;
-  flex-direction:column;
-  gap:3px;
-}
-
-.name{
-  font-size:15px;
-  font-weight:500;
-}
-
-.desc{
-  font-size:13px;
-  color:#8e8e93;
-}
-
-.tag{
-  font-size:11px;
-  padding:3px 6px;
-  border-radius:6px;
-  background:#f2f2f7;
-  color:#555;
-}
-
-.actions button{
-  width:auto;
-  padding:6px 10px;
-  font-size:12px;
-  background:#ff3b30;
-}
+body{font-family:sans-serif;margin:0;background:#f2f4f8}
+header{background:#ff6b6b;color:#fff;padding:15px;text-align:center}
+.container{padding:10px}
+.card{background:#fff;padding:10px;margin:10px 0;border-radius:10px}
+input,select{margin:3px;padding:5px;width:100%}
+button{margin:2px;padding:6px}
 </style>
 </head>
 
 <body>
 
-<header>🐶🐱 댕냥이 메모</header>
+<header>🐶🐱 댕냥이 분양센터 (통합버전)</header>
 
-<div class="inputBox">
+<div class="container">
+
   <input id="name" placeholder="이름">
   <select id="type">
     <option value="dog">🐶 강아지</option>
     <option value="cat">🐱 고양이</option>
   </select>
-  <textarea id="info" placeholder="설명"></textarea>
 
-  <button onclick="add()">메모 추가</button>
+  <input id="sex" placeholder="성별">
+  <input id="info" placeholder="설명">
+
+  <button onclick="addPet()">등록</button>
+
+  <div id="list"></div>
+
 </div>
-
-<div class="list" id="list"></div>
 
 <script>
 
-let pets = JSON.parse(localStorage.getItem("pets")) || [];
+const API = "/api/pets";
+let pets = [];
 
-/* 저장 */
-function save(){
-  localStorage.setItem("pets", JSON.stringify(pets));
+/* 조회 */
+async function load(){
+  const res = await fetch(API);
+  pets = await res.json();
+  render();
 }
 
-/* 추가 */
-function add(){
-  if(!name.value || !info.value) return;
-
-  pets.push({
-    id:Date.now(),
-    name:name.value,
-    type:type.value,
-    info:info.value
+/* 등록 */
+async function addPet(){
+  await fetch(API,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({
+      name:name.value,
+      type:type.value,
+      sex:sex.value,
+      info:info.value
+    })
   });
 
-  save();
-  render();
+  load();
 }
 
 /* 삭제 */
-function del(id){
-  pets = pets.filter(p=>p.id!==id);
-  save();
-  render();
+async function del(id){
+  await fetch(`${API}/${id}`,{method:"DELETE"});
+  load();
+}
+
+/* 수정 */
+async function edit(id){
+  const name = prompt("이름");
+  const info = prompt("설명");
+
+  await fetch(`${API}/${id}`,{
+    method:"PUT",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({name,info})
+  });
+
+  load();
 }
 
 /* 렌더 */
 function render(){
-
   const list = document.getElementById("list");
   list.innerHTML="";
 
   pets.forEach(p=>{
-
-    const div=document.createElement("div");
-    div.className="item";
+    const div = document.createElement("div");
+    div.className="card";
 
     div.innerHTML=`
-      <div class="left">
-        <div class="name">${p.name}</div>
-        <div class="desc">${p.info}</div>
-      </div>
+      <b>${p.name}</b> (${p.type})<br>
+      ${p.sex}<br>
+      ${p.info}<br>
 
-      <div style="display:flex;gap:8px;align-items:center">
-        <span class="tag">${p.type==="dog"?"🐶":"🐱"}</span>
-        <button onclick="del(${p.id})">삭제</button>
-      </div>
+      <button onclick="edit(${p.id})">수정</button>
+      <button onclick="del(${p.id})">삭제</button>
     `;
 
     list.appendChild(div);
   });
 }
 
-render();
+load();
 
 </script>
 
 </body>
-</html>ㅏ
+</html>
+  `);
+});
+
+/* =========================
+   🚀 서버 실행
+========================= */
+app.listen(3000, () => {
+  console.log("서버 실행: http://localhost:3000");
+});
