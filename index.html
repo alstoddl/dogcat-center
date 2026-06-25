@@ -1,136 +1,153 @@
 <!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>댕냥이 분양센터</title>
 
-<html lang="ko">  
-<head>  
-  <div style="text-align:center;padding:10px;">
-  👀 금일 방문자: <b id="visitCount">0</b>
-  </div>
-  </div>
-<meta charset="utf-8">  
-<meta name="viewport" content="width=device-width, initial-scale=1">  
-{  <div style="text-align:center;padding:10px;">
-  👀 금일 방문자: <b id="visitCount">0</b>
+<style>
+body{
+  margin:0;
+  font-family:'Noto Sans KR',sans-serif;
+  background:#f3f4f6;
+}
+
+header{
+  background:#ff6b6b;
+  color:white;
+  padding:18px;
+  text-align:center;
+}
+
+.visit{
+  text-align:center;
+  padding:10px;
+  font-weight:bold;
+}
+
+.info{
+  display:flex;
+  justify-content:center;
+  gap:15px;
+  padding:10px;
+}
+
+.tabs{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  padding:10px;
+}
+
+.tabs button{
+  padding:8px 14px;
+  border:none;
+  border-radius:20px;
+  cursor:pointer;
+  background:#ddd;
+}
+
+.tabs button.active{
+  background:#ff6b6b;
+  color:white;
+}
+
+.container{
+  padding:10px;
+}
+
+.card{
+  background:white;
+  padding:12px;
+  margin-bottom:10px;
+  border-radius:12px;
+}
+
+.tag{
+  font-size:12px;
+  background:#eee;
+  padding:3px 8px;
+  border-radius:10px;
+}
+</style>
+
+</head>
+
+<body>
+
+<header>
+  <h1>🐶🐱 댕냥이 분양센터</h1>
+</header>
+
+<!-- ✅ 방문자 -->
+<div class="visit">
+  👀 금일 방문자: <span id="visitCount">0</span>
 </div>
-  margin:0;  
-  font-family:'Noto Sans KR',sans-serif;  
-  background:#f3f4f6;  
-}  
-  
-header{  
-  background:#ff6b6b;  
-  color:white;  
-  padding:18px;  
-  text-align:center;  
-}  
-  
-.info{  
-  display:flex;  
-  justify-content:center;  
-  gap:15px;  
-  padding:10px;  
-}  
-  
-.tabs{  
-  display:flex;  
-  justify-content:center;  
-  gap:10px;  
-  padding:10px;  
-}  
-  
-.tabs button{  
-  padding:8px 14px;  
-  border:none;  
-  border-radius:20px;  
-  cursor:pointer;  
-  background:#ddd;  
-}  
-  
-.tabs button.active{  
-  background:#ff6b6b;  
-  color:white;  
-}  
-  
-.container{  
-  padding:10px;  
-}  
-  
-.card{  
-  background:white;  
-  padding:12px;  
-  margin-bottom:10px;  
-  border-radius:12px;  
-}  
-  
-.tag{  
-  font-size:12px;  
-  background:#eee;  
-  padding:3px 8px;  
-  border-radius:10px;  
-}  
-</style>  </head>  <body>  <header>  
-  <h1>🐶🐱 댕냥이 분양센터</h1>  
-</header>  <div class="info">  
-  <div>🐶 <span id="dogCount">0</span></div>  
-  <div>🐱 <span id="catCount">0</span></div>  
-</div>  <!-- ✅ 전체 제거 + 필터만 -->  <div class="tabs">  
-  <button class="active" onclick="setFilter('dog',this)">강아지</button>  
-  <button onclick="setFilter('cat',this)">고양이</button>  
-</div>  <div class="container" id="list"></div>  <script>  
-  
-let pets = [];  
-let filter = "dog";  
-  
-/* ================= API ================= */  
-async function loadPets(){  
-  const res = await fetch("/api/pets");  
-  pets = await res.json();  
-  render();  
-}  
-  
-/* ================= 렌더 ================= */  
-function render(){  
-  
-  const list = document.getElementById("list");  
-  list.innerHTML = "";  
-  
-  const filtered = pets.filter(p => p.type === filter);  
-  
-  document.getElementById("dogCount").innerText =  
-    pets.filter(p => p.type === "dog").length;  
-  
-  document.getElementById("catCount").innerText =  
-    pets.filter(p => p.type === "cat").length;  
-  
-  filtered.forEach(p => {  
-    list.innerHTML += `  
-      <div class="card">  
-        <span class="tag">${p.type}</span>  
-        <h3>${p.name}</h3>  
-        <div>${p.sex}</div>  
-        <div>${p.info}</div>  
-      </div>  
-    `;  
-  });  
-}  
-  
-/* ================= 필터 ================= */  
-function setFilter(type, btn){  
-  
-  filter = type;  
-  
-  document.querySelectorAll(".tabs button")  
-    .forEach(b => b.classList.remove("active"));  
-  
-  btn.classList.add("active");  
-  
-  render();  
-}  
-  
-loadPets();  
-  
-</script> 
-  <script>
 
+<div class="info">
+  <div>🐶 <span id="dogCount">0</span></div>
+  <div>🐱 <span id="catCount">0</span></div>
+</div>
+
+<div class="tabs">
+  <button class="active" onclick="setFilter('dog',this)">강아지</button>
+  <button onclick="setFilter('cat',this)">고양이</button>
+</div>
+
+<div class="container" id="list"></div>
+
+<script>
+
+let pets = [];
+let filter = "dog";
+
+/* ================= API ================= */
+async function loadPets(){
+  const res = await fetch("/api/pets");
+  pets = await res.json();
+  render();
+}
+
+/* ================= 렌더 ================= */
+function render(){
+
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  const filtered = pets.filter(p => p.type === filter);
+
+  document.getElementById("dogCount").innerText =
+    pets.filter(p => p.type === "dog").length;
+
+  document.getElementById("catCount").innerText =
+    pets.filter(p => p.type === "cat").length;
+
+  filtered.forEach(p => {
+    list.innerHTML += `
+      <div class="card">
+        <span class="tag">${p.type}</span>
+        <h3>${p.name}</h3>
+        <div>${p.sex}</div>
+        <div>${p.info}</div>
+      </div>
+    `;
+  });
+}
+
+/* ================= 필터 ================= */
+function setFilter(type, btn){
+
+  filter = type;
+
+  document.querySelectorAll(".tabs button")
+    .forEach(b => b.classList.remove("active"));
+
+  btn.classList.add("active");
+
+  render();
+}
+
+/* ================= 방문자 ================= */
 function updateVisitCount(){
 
   const today = new Date().toISOString().split("T")[0];
@@ -138,13 +155,11 @@ function updateVisitCount(){
   let savedDate = localStorage.getItem("visit_date");
   let count = localStorage.getItem("visit_count");
 
-  // 날짜 바뀌었으면 초기화
   if(savedDate !== today){
     savedDate = today;
     count = 0;
   }
 
-  // 방문 +1
   count = Number(count) + 1;
 
   localStorage.setItem("visit_date", savedDate);
@@ -155,7 +170,9 @@ function updateVisitCount(){
 
 /* 실행 */
 updateVisitCount();
+loadPets();
 
-  </script>
-</body>  
+</script>
+
+</body>
 </html>
