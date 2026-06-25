@@ -1,341 +1,203 @@
-
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>댕냥이 분양센터</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>댕냥이 분양센터</title>
 
-  <style>
-    :root{
-      --bg:#f3f4f6;
-      --pin:#d33;
-      --yellow:#fff7a8;
-      --yellow-dark:#f2e57a;
-      --shadow: rgba(15,23,42,0.18);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', 'Helvetica Neue', Arial;
-    }
+<style>
+body{
+  margin:0;
+  font-family:'Noto Sans KR',sans-serif;
+  background:#f3f4f6;
+}
 
-    body{
-      margin:0;
-      background:linear-gradient(180deg,var(--bg),#eef2f7);
-      overflow-x: auto;
-    }
+header{
+  background:#ff6b6b;
+  color:white;
+  padding:18px;
+  text-align:center;
+}
 
-    /* 제목 */
-    h2{
-      width: 900px;
-      margin: 10px auto -5px auto;
-      text-align: left;
-      font-size: 14px;
-      font-weight: 700;
-      color: #666;
-      padding-left: 10px;
-    }
+.info, .tabs{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  padding:10px;
+}
 
-    /* ⭐ 필터 버튼 영역 */
-    .filter-box{
-      width: 900px;
-      margin: 10px auto 15px auto;
-      display: flex;
-      gap: 15px;
-      padding-left: 10px;
-    }
+.tabs button{
+  padding:8px 14px;
+  border:none;
+  border-radius:20px;
+  cursor:pointer;
+  background:#ddd;
+}
+.tabs button.active{background:#ff6b6b;color:#fff;}
 
-    .filter-btn{
-      padding: 6px 14px;
-      border-radius: 8px;
-      background: white;
-      border: 1px solid #ccc;
-      cursor: pointer;
-      font-size: 14px;
-      transition: 0.2s;
-    }
+.container{padding:10px;}
 
-    .filter-btn.active{
-      background: #ffe58f;
-      border-color: #e0b800;
-      font-weight: 700;
-    }
+.card{
+  background:white;
+  padding:12px;
+  margin-bottom:10px;
+  border-radius:12px;
+}
 
-    /* ⭐ 고정형 3열 포스트잇 보드 */
-    .board{
-      width: 900px;
-      margin: 20px auto;
-      display: grid;
-      grid-template-columns: 250px 250px 250px;
-      column-gap: 35px;
-      row-gap: 35px;
-      justify-content: center;
-    }
+.tag{font-size:12px;background:#eee;padding:3px 8px;border-radius:10px;}
 
-    /* ⭐ 포스트잇 */
-    .postit{
-      width:240px;
-      padding:16px 14px;
-      border-radius:12px;
-      box-shadow:0 10px 40px var(--shadow), 0 2px 6px rgba(0,0,0,0.06);
-      transition:box-shadow .18s ease;
-      position:relative;
-      overflow:hidden;
-      min-height:180px;
-      background:linear-gradient(180deg,var(--yellow),var(--yellow-dark));
-    }
+button.action{
+  margin-top:6px;
+  margin-right:5px;
+  padding:5px 8px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
 
-    .postit:hover{
-      box-shadow:0 18px 50px rgba(15,23,42,0.24);
-    }
-
-    /* 포스트잇 하단 정보 바 */
-    .postit-footer{
-      position: absolute;
-      left: 10px;
-      right: 10px;
-      bottom: 8px;
-
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-
-      font-size: 11px;
-      color: #6b5a00;
-      opacity: 0.6;
-    }
-
-    /* 핀 이모지 */
-    .pin{
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      top: -2px;
-
-      background: none;
-      width: auto;
-      height: auto;
-
-      display: block;
-      color: #d33;
-      font-size: 20px;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.25);
-      box-shadow: none;
-    }
-
-    /* 텍스트 */
-    h1{
-      margin: 10px 0 0 0;
-      font-size:17px;
-      color:#3b2a00;
-    }
-
-    p{
-      margin:6px 0;
-      color:#3d2f00;
-      font-size:13px;
-      word-break:break-all;
-      line-height:1.3;
-    }
-
-    .meta{
-      margin-top:6px;
-      font-size:12px;
-      color:#3d2f00;
-      display:flex;
-      gap:6px;
-      align-items:center;
-      word-break:break-all;
-    }
-  </style>
+.edit{background:#ffd43b;}
+.del{background:#ff6b6b;color:white;}
+.addBtn{background:#51cf66;color:white;padding:8px 12px;border:none;border-radius:10px;cursor:pointer;}
+</style>
 </head>
 
 <body>
 
-  <!-- 제목 -->
-  <!-- <h2 id="title"></h2> -->
-  <h2>
-    <span id="title"></span>
-    <span id="count" style="margin-left:10px; color:#888;">(today : 0)</span>
-  </h2>
+<header>
+  <h1>🐶🐱 댕냥이 분양센터</h1>
+</header>
 
-  <!-- ⭐ 필터 버튼 -->
-  <div class="filter-box">
-    <button class="filter-btn active" id="btn-dog">🐶 강아지</button>
-    <button class="filter-btn" id="btn-cat">🐱 고양이</button>
-  </div>
+<div class="info">
+  <div>🐶 <span id="dogCount">0</span></div>
+  <div>🐱 <span id="catCount">0</span></div>
+</div>
 
-  <main class="board" id="board"></main>
+<div style="text-align:center;margin:10px;">
+  <button class="addBtn" onclick="openForm()">+ 등록</button>
+</div>
 
-  <script>
-    const SUPABASE_URL = "https://djcqvzlmzkabxilcgowx.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqY3F2emxtemthYnhpbGNnb3d4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUyNDkzNDIsImV4cCI6MjA4MDgyNTM0Mn0.HTR23axmJmua0LJb0u_Rj8fa-BYotVutrC26uSGkwh0";
-    const TABLE = "sale";
+<div class="tabs">
+  <button class="active" onclick="setFilter('all',this)">전체</button>
+  <button onclick="setFilter('dog',this)">강아지</button>
+  <button onclick="setFilter('cat',this)">고양이</button>
+</div>
 
-    let allData = [];      // 전체 데이터
-    let currentType = "dog"; // ⭐ 처음 로드될 때 강아지만 표시
+<div class="container" id="list"></div>
 
-    async function loadData() {
-      try {
-        const res = await fetch(
-          ${SUPABASE_URL}/rest/v1/${TABLE}?select=*,
-          {
-            method: "GET",
-            headers: {
-              "apikey": SUPABASE_KEY,
-              "Authorization": Bearer ${SUPABASE_KEY}
-            }
-          }
-        );
+<!-- 등록 폼 -->
+<div id="formBox" style="display:none;padding:10px;">
+  <input id="type" placeholder="dog / cat"><br><br>
+  <input id="name" placeholder="이름"><br><br>
+  <input id="sex" placeholder="성별"><br><br>
+  <input id="info" placeholder="설명"><br><br>
+  <button onclick="savePet()">저장</button>
+</div>
 
-const data = await res.json();
-        if (!Array.isArray(data)) return;
+<script>
 
-        allData = data;
+let pets = [];
+let filter = "all";
+let editId = null;
 
-        // 오래된 순 정렬 (id 오름차순)
-        allData.sort((a, b) => a.id - b.id);
+/* ================= API ================= */
+async function loadPets(){
+  try{
+    const res = await fetch("/api/pets");
+    pets = await res.json();
+  }catch{
+    pets = JSON.parse(localStorage.getItem("pets")||"[]");
+  }
+  render();
+}
 
-        // 개, 고양이 수 계산
-        const dogCount = data.filter(item => item.type === "dog").length;
-        const catCount = data.filter(item => item.type === "cat").length;
+/* ================= 저장 ================= */
+async function saveToServer(){
+  localStorage.setItem("pets", JSON.stringify(pets));
+}
 
-        updateTitle(dogCount, catCount);
+/* ================= 렌더 ================= */
+function render(){
+  const list = document.getElementById("list");
+  list.innerHTML = "";
 
-        // 초기 로딩 → 강아지만 표시
-        renderCards(filterData("dog"));
+  const filtered = pets.filter(p => filter==="all" || p.type===filter);
 
-      } catch (err) {
-        console.error("Fetch Error:", err);
-      }
-    }
+  document.getElementById("dogCount").innerText =
+    pets.filter(p=>p.type==="dog").length;
+  document.getElementById("catCount").innerText =
+    pets.filter(p=>p.type==="cat").length;
 
-    async function updateAndGetVisitCount() {
-      try {
-        const res = await fetch(
-          ${SUPABASE_URL}/rest/v1/rpc/increment_visit_and_get_count,
-          {
-            method: "POST",
-            headers: {
-              "apikey": SUPABASE_KEY,
-              "Authorization": Bearer ${SUPABASE_KEY},
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({})
-          }
-        );
+  filtered.forEach((p,i)=>{
 
-        if (!res.ok) {
-          throw new Error(HTTP 오류: ${res.status});
-        }
+    const div = document.createElement("div");
+    div.className="card";
 
-        const data = await res.json();
+    div.innerHTML=`
+      <span class="tag">${p.type}</span>
+      <h3>${p.name}</h3>
+      <div>${p.sex}</div>
+      <div>${p.info}</div>
 
-        // 👉 반환값 형태 대응
-        let count;
+      <button class="action edit" onclick="editPet(${i})">수정</button>
+      <button class="action del" onclick="deletePet(${i})">삭제</button>
+    `;
 
-        if (typeof data === "number") {
-          count = data;
-        } else if (Array.isArray(data)) {
-          count = data[0]?.count;
-        } else {
-          count = data?.count;
-        }
+    list.appendChild(div);
+  });
+}
 
-        // document.getElementById("count").innerText = count ?? "오류";
-        updateCount(count);
+/* ================= CRUD ================= */
+function openForm(){
+  document.getElementById("formBox").style.display="block";
+}
 
-      } catch (err) {
-        console.error("RPC 호출 실패:", err);
-        document.getElementById("count").innerText = "불러오기 실패";
-      }
-    }
+function savePet(){
+  const pet = {
+    type: type.value,
+    name: name.value,
+    sex: sex.value,
+    info: info.value
+  };
 
-    function updateTitle(count1, count2) {
-      const titleEl = document.getElementById("title");
-      // const today = new Date().toISOString().slice(0, 10);
-      // titleEl.textContent = 강아지 ${count1}마리, 고양이 ${count2}마리 등록 (${today});
+  if(editId !== null){
+    pets[editId] = pet;
+    editId = null;
+  } else {
+    pets.push(pet);
+  }
 
-      titleEl.textContent = 강아지 ${count1}마리, 고양이 ${count2}마리 등록;
-    }
+  saveToServer();
+  render();
+}
 
-    function updateCount(count) {
-      const countEl = document.getElementById("count");
+function editPet(i){
+  const p = pets[i];
+  type.value = p.type;
+  name.value = p.name;
+  sex.value = p.sex;
+  info.value = p.info;
+  editId = i;
+  openForm();
+}
 
-      countEl.textContent = (today : ${count});
-    }
+function deletePet(i){
+  pets.splice(i,1);
+  saveToServer();
+  render();
+}
 
-    /* ⭐ type별 필터 */
-    function filterData(type) {
-      return allData.filter(item => item.type === type);
-    }
+/* ================= filter ================= */
+function setFilter(t,btn){
+  filter = t;
+  document.querySelectorAll(".tabs button")
+    .forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  render();
+}
 
-    /* ⭐ 카드 렌더링 */
-    function renderCards(data) {
-      const board = document.getElementById("board");
-      board.innerHTML = "";
+loadPets();
 
-      data.forEach((item) => {
-        const card = document.createElement("article");
-        card.className = postit;
+</script>
 
-        card.innerHTML = 
-          <div class="pin">📌</div>
-
-          <h1>${item.nick_name ?? ""}</h1>
-
-          <p>📄 ${item.specification ?? ""}</p>
-          <p>📝 ${item.memo ?? ""}</p>
-
-          ${
-            item.link
-              ? 
-                <div class="meta">
-                  <span>🔗</span>
-                  <span>
-                    <a href="${item.link}" target="_blank" rel="noopener noreferrer">
-                      ${item.link}
-                    </a>
-                  </span>
-                </div>
-              
-              : ""
-          }
-
-          <div class="postit-footer">
-            <span>${item.valid_month}월 분양</span>
-            <span>#${item.id}</span>
-          </div>
-        ;
-
-        board.appendChild(card);
-      });
-    }
-
-    /* ⭐ 버튼 클릭 이벤트 */
-    document.getElementById("btn-dog").addEventListener("click", () => {
-      currentType = "dog";
-      setActive("dog");
-      renderCards(filterData("dog"));
-    });
-
-    document.getElementById("btn-cat").addEventListener("click", () => {
-      currentType = "cat";
-      setActive("cat");
-      renderCards(filterData("cat"));
-    });
-
-    /* ⭐ 버튼 active 스타일 적용 */
-    function setActive(type) {
-      document.getElementById("btn-dog").classList.remove("active");
-      document.getElementById("btn-cat").classList.remove("active");
-
-      if (type === "dog")
-        document.getElementById("btn-dog").classList.add("active");
-      else
-        document.getElementById("btn-cat").classList.add("active");
-    }
-
-    loadData();
-    updateAndGetVisitCount();
-    
-  </script>
 </body>
 </html>
