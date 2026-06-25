@@ -1,127 +1,209 @@
-<header>
-  <h1>🐶🐱 댕냥이 분양센터</h1>
-  <p>건강한 반려동물의 새로운 가족을 찾아드립니다</p>
-  <div id="count">(today : 0)</div>
-</header>
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>댕냥이 포스트잇 보드</title>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <style>
-.notice{
-  background:#fff;
-  border-left:6px solid #ffcc4d;
-  padding:15px;
-  margin:20px;
-  border-radius:10px;
-  box-shadow:0 2px 8px rgba(0,0,0,.08);
+body{
+  margin:0;
+  font-family:Arial;
+  background:#e9ecef;
 }
 
-.menu{
-  display:flex;
-  justify-content:center;
-  gap:15px;
-  margin:20px;
+/* 📌 보드 */
+.board{
+  position:relative;
+  width:100%;
+  height:100vh;
+  overflow:hidden;
 }
 
-.menu button{
-  padding:12px 20px;
+/* 📌 포스트잇 */
+.card{
+  width:200px;
+  min-height:140px;
+  background:#fff8a6;
+  padding:12px;
+  border-radius:8px;
+  box-shadow:5px 6px 0 rgba(0,0,0,.15);
+  position:absolute;
+  cursor:grab;
+  user-select:none;
+}
+
+.card:active{
+  cursor:grabbing;
+}
+
+/* 라벨 */
+.badge{
+  font-size:12px;
+  padding:3px 6px;
+  border-radius:6px;
+  color:white;
+}
+
+.dog{background:#ff9f43;}
+.cat{background:#6c5ce7;}
+
+/* 삭제 버튼 */
+.del{
+  position:absolute;
+  top:5px;
+  right:5px;
+  background:red;
+  color:white;
   border:none;
-  border-radius:10px;
-  background:#ffcc4d;
-  font-size:16px;
-  font-weight:bold;
+  border-radius:5px;
   cursor:pointer;
 }
 </style>
+</head>
 
-<div class="notice">
-  <h2>📢 공지사항</h2>
+<body>
 
-  <p>
-    ① 프로필 없이 연락하거나 사적인 만남만을 반복적으로 요구하는 경우
-    [교무실]에 제보해 주세요.
-  </p>
-
-  <p>
-    ② 연락 시에는 서로 존중하는 마음으로 경어체를 사용해 주세요.
-  </p>
-
-  <p>
-    ③ 단톡방 및 오픈채팅에서는 프로필을 설정하고 예의 있게 연락해 주세요.
-  </p>
-</div>
-
-<div class="menu">
-  <button onclick="showPets('dog')">🐶 강아지</button>
-  <button onclick="showPets('cat')">🐱 고양이</button>
-</div>
-
-<div class="board">
-
-  <div class="card dog-card">
-    <div class="pin">📌</div>
-    <span class="badge dog">강아지</span>
-    <h3>말티푸</h3>
-    <p>성별 : 여아</p>
-    <p>접종 완료</p>
-    <p>2개월</p>
-  </div>
-
-  <div class="card dog-card">
-    <div class="pin">📌</div>
-    <span class="badge dog">강아지</span>
-    <h3>포메라니안</h3>
-    <p>성별 : 남아</p>
-    <p>접종 완료</p>
-    <p>2개월</p>
-  </div>
-
-  <div class="card cat-card">
-    <div class="pin">📌</div>
-    <span class="badge cat">고양이</span>
-    <h3>실버뱅갈</h3>
-    <p>성별 : 남아</p>
-    <p>건강검진 완료</p>
-    <p>3개월</p>
-  </div>
-
-</div>
+<div class="board" id="board"></div>
 
 <script>
-function showPets(type){
 
-  const dogs = document.querySelectorAll('.dog-card');
-  const cats = document.querySelectorAll('.cat-card');
+/* =========================
+   🔥 Firebase 설정 (여기 수정)
+========================= */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+};
 
-  if(type === 'dog'){
-    dogs.forEach(el => el.style.display='block');
-    cats.forEach(el => el.style.display='none');
-  }else{
-    dogs.forEach(el => el.style.display='none');
-    cats.forEach(el => el.style.display='block');
-  }
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+/* =========================
+   🧲 드래그 상태
+========================= */
+let activeCard = null;
+let offsetX = 0;
+let offsetY = 0;
+
+/* =========================
+   📥 데이터 로드
+========================= */
+async function load(){
+  const board = document.getElementById("board");
+  board.innerHTML = "";
+
+  const snap = await db.collection("pets").get();
+
+  snap.forEach(doc=>{
+    const d = doc.data();
+
+    const card = document.createElement("div");
+    card.className = "card";
+    card.dataset.id = doc.id;
+
+    card.innerHTML = 
+      <span class="badge ${d.type}">${d.type}</span>
+      <h3>${d.name}</h3>
+      <p>${d.info}</p>
+      <button class="del">X</button>
+    ;
+
+    card.style.left = (d.x || 50) + "px";
+    card.style.top = (d.y || 50) + "px";
+
+    /* 삭제 */
+    card.querySelector(".del").onclick = async (e)=>{
+      e.stopPropagation();
+      await db.collection("pets").doc(doc.id).delete();
+      load();
+    };
+
+    board.appendChild(card);
+  });
 }
 
-function updateVisitorCount(){
-
-  const today = new Date().toISOString().slice(0,10);
-
-  let savedDate = localStorage.getItem("visitDate");
-  let count = parseInt(localStorage.getItem("visitCount") || "0");
-
-  if(savedDate !== today){
-    count = 0;
-    localStorage.setItem("visitDate", today);
-  }
-
-  count++;
-
-  localStorage.setItem("visitCount", count);
-
-  document.getElementById("count").textContent =
-    "(today : " + count + ")";
+/* =========================
+   💾 위치 저장
+========================= */
+function save(id, x, y){
+  db.collection("pets").doc(id).update({x,y});
 }
 
+/* =========================
+   🖱️ 드래그 시작
+========================= */
+document.addEventListener("mousedown", start);
+document.addEventListener("touchstart", start);
+
+function start(e){
+  const card = e.target.closest(".card");
+  if(!card) return;
+
+  activeCard = card;
+
+  const rect = card.getBoundingClientRect();
+
+  const x = e.touches ? e.touches[0].clientX : e.clientX;
+  const y = e.touches ? e.touches[0].clientY : e.clientY;
+
+  offsetX = x - rect.left;
+  offsetY = y - rect.top;
+
+  document.addEventListener("mousemove", move);
+  document.addEventListener("touchmove", move);
+  document.addEventListener("mouseup", end);
+  document.addEventListener("touchend", end);
+}
+
+/* =========================
+   📍 이동
+========================= */
+function move(e){
+  if(!activeCard) return;
+
+  const x = e.touches ? e.touches[0].clientX : e.clientX;
+  const y = e.touches ? e.touches[0].clientY : e.clientY;
+
+  const nx = x - offsetX;
+  const ny = y - offsetY;
+
+  activeCard.style.left = nx + "px";
+  activeCard.style.top = ny + "px";
+}
+
+/* =========================
+   🛑 종료 + 저장
+========================= */
+function end(){
+  if(activeCard){
+    save(
+      activeCard.dataset.id,
+      parseInt(activeCard.style.left),
+      parseInt(activeCard.style.top)
+    );
+  }
+
+  activeCard = null;
+
+  document.removeEventListener("mousemove", move);
+  document.removeEventListener("touchmove", move);
+  document.removeEventListener("mouseup", end);
+  document.removeEventListener("touchend", end);
+}
+  /* =========================
+   🚀 실행
+========================= */
 window.onload = function(){
-  showPets('dog');
-  updateVisitorCount();
-}
+  load();
+};
+
 </script>
+</body>
+</html>
