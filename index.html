@@ -1,5 +1,12 @@
 document.addEventListener('DOMContentLoaded', initApp);
 
+let pets = [];
+let favorites = [];
+let visitors = 0;
+
+/* =========================
+   📦 초기화
+========================= */
 function initApp() {
   initData();
   initUI();
@@ -7,106 +14,120 @@ function initApp() {
   initAdmin();
 }
 
-/* =========================
-   📦 데이터
-========================= */
 function initData() {
-  loadPets();
-  loadFavorites();
-  loadVisitors();
-}
+  pets = JSON.parse(localStorage.getItem('pets')) || [];
+  favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 
-function loadPets() {
-  window.pets = JSON.parse(localStorage.getItem('pets')) || [];
-}
-
-function loadFavorites() {
-  window.favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-}
-
-function loadVisitors() {
-  let count = localStorage.getItem('visitors') || 0;
-  count = Number(count) + 1;
-  localStorage.setItem('visitors', count);
-  window.visitors = count;
+  visitors = Number(localStorage.getItem('visitors') || 0) + 1;
+  localStorage.setItem('visitors', visitors);
 }
 
 /* =========================
-   🖥️ UI 초기화
+   🖥️ UI
 ========================= */
 function initUI() {
-  showPets('dog');
-  updatePetCounts();
-  updateVisitorCount();
+  setActiveTab('dog');
+  render();
+  updateCounts();
+  updateVisitor();
 }
 
-function updateVisitorCount() {
+function updateVisitor() {
   const el = document.getElementById('visitorCount');
-  if (el) el.innerText = window.visitors || 0;
+  if (el) el.textContent = visitors;
 }
 
-function updatePetCounts() {
+function updateCounts() {
   const dogs = pets.filter(p => p.type === 'dog').length;
   const cats = pets.filter(p => p.type === 'cat').length;
 
   const dogEl = document.getElementById('dogCount');
   const catEl = document.getElementById('catCount');
 
-  if (dogEl) dogEl.innerText = dogs;
-  if (catEl) catEl.innerText = cats;
+  if (dogEl) dogEl.textContent = dogs;
+  if (catEl) catEl.textContent = cats;
 }
 
 /* =========================
-   🐾 펫 출력
+   🐾 렌더링 (핵심 개선)
 ========================= */
-function showPets(type) {
+function render() {
   const container = document.getElementById('petList');
   if (!container) return;
 
+  const type = getCurrentType();
   container.innerHTML = '';
+
+  const fragment = document.createDocumentFragment();
 
   pets
     .filter(p => p.type === type)
-    .forEach((pet, index) => {
+    .forEach(pet => {
+      const card = document.createElement('div');
+      card.className = 'pet-card';
+
       const isFav = favorites.includes(pet.id);
 
-      container.innerHTML += 
-        <div class="pet-card">
-          <img src="${pet.image || 'default.jpg'}" />
-          <h3>${pet.name}</h3>
-          <button onclick="toggleFavorite('${pet.id}')">
-            ${isFav ? '❤️ 찜됨' : '🤍 찜하기'}
-          </button>
+      card.innerHTML = 
+        <img src="${pet.image || 'default.jpg'}" />
+        <h3>${pet.name}</h3>
 
-          <button class="delete-btn" onclick="deletePet('${pet.id}')">
-            삭제
-          </button>
-        </div>
+        <button onclick="toggleFavorite('${pet.id}')">
+          ${isFav ? '❤️ 찜됨' : '🤍 찜하기'}
+        </button>
+
+        <button onclick="deletePet('${pet.id}')" class="delete-btn">
+          삭제
+        </button>
       ;
+
+      fragment.appendChild(card);
     });
+
+  container.appendChild(fragment);
 }
 
 /* =========================
-   ❤️ 찜 기능
+   📝 글쓰기 (추가 기능)
 ========================= */
-function toggleFavorite(id) {
-  if (favorites.includes(id)) {
-    favorites = favorites.filter(f => f !== id);
-  } else {
-    favorites.push(id);
+function addPet() {
+  const name = document.getElementById('petName').value;
+  const type = document.getElementById('petType').value;
+  const image = document.getElementById('petImage').value;
+
+  if (!name || !type) {
+    alert('이름과 종류는 필수입니다.');
+    return;
   }
 
-  localStorage.setItem('favorites', JSON.stringify(favorites));
-  showPets(currentType());
-}
+  const newPet = {
+    id: Date.now().toString(),
+    name,
+    type,
+    image
+  };
 
-function currentType() {
-  const active = document.querySelector('.tab-active');
-  return active ? active.dataset.type : 'dog';
+  pets.push(newPet);
+  localStorage.setItem('pets', JSON.stringify(pets));
+
+  render();
+  updateCounts();
 }
 
 /* =========================
-   🗑️ 삭제 기능 (관리자용)
+   ❤️ 찜
+========================= */
+function toggleFavorite(id) {
+  favorites = favorites.includes(id)
+    ? favorites.filter(f => f !== id)
+    : [...favorites, id];
+
+  localStorage.setItem('favorites', JSON.stringify(favorites));
+  render();
+}
+
+/* =========================
+   🗑️ 삭제
 ========================= */
 function deletePet(id) {
   if (!confirm('삭제할까요?')) return;
@@ -114,31 +135,43 @@ function deletePet(id) {
   pets = pets.filter(p => p.id !== id);
   localStorage.setItem('pets', JSON.stringify(pets));
 
-  showPets(currentType());
-  updatePetCounts();
+  render();
+  updateCounts();
 }
 
 /* =========================
-   🎯 이벤트
+   📌 탭
 ========================= */
 function initEvents() {
   document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('tab-active'));
-      e.target.classList.add('tab-active');
-
-      showPets(e.target.dataset.type);
+    btn.addEventListener('click', e => {
+      setActiveTab(e.target.dataset.type);
+      render();
     });
   });
 }
 
+function setActiveTab(type) {
+  document.querySelectorAll('.tab-btn').forEach(b =>
+    b.classList.remove('tab-active')
+  );
+
+  const btn = document.querySelector([data-type="${type}"]);
+  if (btn) btn.classList.add('tab-active');
+
+  localStorage.setItem('currentType', type);
+}
+
+function getCurrentType() {
+  const saved = localStorage.getItem('currentType');
+  return saved || 'dog';
+}
+
 /* =========================
-   🛠️ 관리자 기능
+   🛠️ 관리자
 ========================= */
 function initAdmin() {
-  const isAdmin = localStorage.getItem('admin') === 'true';
-  if (!isAdmin) return;
-
+  if (localStorage.getItem('admin') !== 'true') return;
   document.body.classList.add('admin-mode');
 }
-  
+
