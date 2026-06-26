@@ -51,3 +51,71 @@ app.get("/", (req, res) => {
     });
 
 });
+/* =========================
+   분양 목록 조회
+========================= */
+
+app.get("/api/pets", (req, res) => {
+
+    db.all(
+        "SELECT * FROM pets ORDER BY id DESC",
+        [],
+        (err, rows) => {
+
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err.message
+                });
+            }
+
+            res.json(rows);
+
+        }
+    );
+
+});
+
+
+/* =========================
+   분양 등록
+========================= */
+
+app.post("/api/pets", (req, res) => {
+
+    const { type, name, sex, info } = req.body;
+
+    if (!type || !name || !sex || !info) {
+        return res.status(400).json({
+            success: false,
+            message: "모든 항목을 입력하세요."
+        });
+    }
+
+    db.run(
+
+        `INSERT INTO pets(type,name,sex,info)
+         VALUES(?,?,?,?)`,
+
+        [type, name, sex, info],
+
+        function(err){
+
+            if(err){
+                return res.status(500).json({
+                    success:false,
+                    message:err.message
+                });
+            }
+
+            res.json({
+                success:true,
+                id:this.lastID,
+                message:"등록 완료"
+            });
+
+        }
+
+    );
+
+});
