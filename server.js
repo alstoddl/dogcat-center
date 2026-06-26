@@ -6,6 +6,12 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+const app = express();
+
+app.set("trust proxy", true);
+
+app.use(cors());
+app.use(express.json());
 
 // 메모리 저장 (서버 재시작 시 초기화됨)
 let pets = [];
@@ -89,4 +95,39 @@ app.get("/api/count", (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+});
+/* ==========================
+   방문자(IP 하루 1회)
+========================== */
+
+let today = new Date().toISOString().slice(0, 10);
+let todayCount = 0;
+const visitedIPs = new Set();
+
+app.get("/api/visit", (req, res) => {
+  const now = new Date().toISOString().slice(0, 10);
+
+  // 날짜가 바뀌면 초기화
+  if (now !== today) {
+    today = now;
+    todayCount = 0;
+    visitedIPs.clear();
+  }
+
+  // 실제 접속 IP
+  const ip =
+    (req.headers["x-forwarded-for"] || "")
+      .split(",")[0]
+      .trim() ||
+    req.socket.remoteAddress;
+
+  // 오늘 처음 방문한 IP만 카운트
+  if (!visitedIPs.has(ip)) {
+    visitedIPs.add(ip);
+    todayCount++;
+  }
+
+  res.json({
+    today: todayCount
+  });
 });
