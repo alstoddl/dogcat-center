@@ -103,13 +103,13 @@ footer{
 /* ======================
    🐾 데이터
 ====================== */
-const pets = [
-  {type:'dog', name:'말티푸', sex:'여아', info:'활발하고 애교 많음'},
-  {type:'dog', name:'푸들', sex:'남아', info:'똑똑하고 훈련 잘됨'},
-  {type:'cat', name:'러시안블루', sex:'여아', info:'조용하고 깨끗함'},
-  {type:'cat', name:'코리안숏헤어', sex:'남아', info:'사람 잘 따름'}
-];
+const pets = 
+const API = "https://여기에-Render-주소.onrender.com/api";
+// 개발 중이라면 PC에서는
+// const API = "http://localhost:3000/api";
 
+let pets = [];
+let currentFilter = "all";
 let currentFilter = 'all';
 
 /* ======================
@@ -185,9 +185,14 @@ function filterPets(type, btn){
    🚀 초기 실행
 ====================== */
 updateVisitor();
-updateCounts();
-renderPets();
+loadPets();
 </script>
+async function loadPets() {
+    const res = await fetch(API + "/pets");
+    pets = await res.json();
 
+    updateCounts();
+    renderPets();
+}
 </body>
 </html>
