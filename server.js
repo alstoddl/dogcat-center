@@ -79,7 +79,6 @@ app.get("/api/pets", (req, res) => {
 /* =========================
    분양 등록
 ========================= */
-
 app.post("/api/pets", (req, res) => {
 
     const { type, name, sex, info } = req.body;
@@ -127,4 +126,191 @@ app.post("/api/pets", (req, res) => {
         }
     );
 
+});
+/* =========================
+   분양 수정
+========================= */
+
+app.put("/api/pets/:id", (req, res) => {
+
+    const id = req.params.id;
+    const { type, name, sex, info } = req.body;
+
+    db.run(
+        `UPDATE pets
+         SET type=?, name=?, sex=?, info=?
+         WHERE id=?`,
+        [type, name, sex, info, id],
+        function(err) {
+
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err.message
+                });
+            }
+
+            if (this.changes === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: "데이터를 찾을 수 없습니다."
+                });
+            }
+
+            res.json({
+                success: true,
+                message: "수정 완료"
+            });
+
+        }
+    );
+
+});
+/* =========================
+   분양 삭제
+========================= */
+
+app.delete("/api/pets/:id", (req, res) => {
+
+    const id = req.params.id;
+
+    db.run(
+        "DELETE FROM pets WHERE id=?",
+        [id],
+        function(err) {
+
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err.message
+                });
+            }
+
+            if (this.changes === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: "데이터를 찾을 수 없습니다."
+                });
+            }
+
+            res.json({
+                success: true,
+                message: "삭제 완료"
+            });
+
+        }
+    );
+
+});
+/* =========================
+   강아지/고양이 개수
+========================= */
+
+app.get("/api/count", (req, res) => {
+
+    db.get(
+        `
+        SELECT
+            SUM(CASE WHEN type='dog' THEN 1 ELSE 0 END) AS dog,
+            SUM(CASE WHEN type='cat' THEN 1 ELSE 0 END) AS cat,
+            COUNT(*) AS total
+        FROM pets
+        `,
+        [],
+        (err, row) => {
+
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err.message
+                });
+            }
+
+            res.json({
+                dog: row.dog || 0,
+                cat: row.cat || 0,
+                total: row.total || 0
+            });
+
+        }
+    );
+
+});
+
+
+/* =========================
+   방문자(IP 하루 1회)
+========================= */
+
+app.get("/api/visit", (req, res) => {
+
+    const today = new Date().toISOString().slice(0, 10);
+
+    const ip =
+        (req.headers["x-forwarded-for"] || "")
+        .split(",")[0]
+        .trim() || req.socket.remoteAddress;
+
+    db.get(
+        "SELECT * FROM visits WHERE visitDate=? AND ip=?",
+        [today, ip],
+        (err, row) => {
+
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err.message
+                });
+            }
+
+            if (row) {
+
+                db.get(
+                    "SELECT COUNT(*) AS today FROM visits WHERE visitDate=?",
+                    [today],
+                    (err, countRow) => {
+
+                        res.json({
+                            today: countRow.today
+                        });
+
+                    }
+                );
+
+            } else {
+
+                db.run(
+                    "INSERT INTO visits(visitDate, ip) VALUES(?, ?)",
+                    [today, ip],
+                    () => {
+
+                        db.get(
+                            "SELECT COUNT(*) AS today FROM visits WHERE visitDate=?",
+                            [today],
+                            (err, countRow) => {
+
+                                res.json({
+                                    today: countRow.today
+                                });
+
+                            }
+                        );
+
+                    }
+                );
+
+            }
+
+        }
+    );
+
+});
+
+
+/* =========================
+   서버 실행
+========================= */
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
