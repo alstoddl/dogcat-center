@@ -118,4 +118,82 @@ app.post("/api/pets", (req, res) => {
 
     );
 
+});/* =========================
+   분양 수정
+========================= */
+
+app.put("/api/pets/:id", (req, res) => {
+
+    const { type, name, sex, info } = req.body;
+    const id = req.params.id;
+
+    db.run(
+        `UPDATE pets
+         SET type=?, name=?, sex=?, info=?
+         WHERE id=?`,
+        [type, name, sex, info, id],
+        function(err){
+
+            if(err){
+                return res.status(500).json({
+                    success:false,
+                    message:err.message
+                });
+            }
+
+            if(this.changes===0){
+                return res.status(404).json({
+                    success:false,
+                    message:"데이터가 없습니다."
+                });
+            }
+
+            res.json({
+                success:true,
+                message:"수정 완료"
+            });
+
+        }
+
+    );
+
+});
+
+
+/* =========================
+   분양 삭제
+========================= */
+
+app.delete("/api/pets/:id", (req, res) => {
+
+    const id = req.params.id;
+
+    db.run(
+        "DELETE FROM pets WHERE id=?",
+        [id],
+        function(err){
+
+            if(err){
+                return res.status(500).json({
+                    success:false,
+                    message:err.message
+                });
+            }
+
+            if(this.changes===0){
+                return res.status(404).json({
+                    success:false,
+                    message:"데이터가 없습니다."
+                });
+            }
+
+            res.json({
+                success:true,
+                message:"삭제 완료"
+            });
+
+        }
+
+    );
+
 });
